@@ -13,7 +13,7 @@ from clld import interfaces
 from clld.db.meta import Base, CustomModelMixin
 from clld.db.models.common import Value, ValueSet, Parameter,  IdNameDescriptionMixin, HasSourceMixin, Contribution, Language, Unit
 
-from parabank08 import interfaces as parabank_interfaces
+from parabank import interfaces as parabank_interfaces
 
 
 class ParadigmLanguage(Base):
