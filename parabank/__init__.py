@@ -1,10 +1,10 @@
 from pyramid.config import Configurator
 
 # we must make sure custom models are known at database initialization!
-from parabank14 import models
+from parabank import models
 
-from parabank14.models import Syncretism, Pattern, Paradigm, Word
-from parabank14.interfaces import ISyncretism, IPattern, IParadigm
+from parabank.models import Syncretism, Pattern, Paradigm, Word
+from parabank.interfaces import ISyncretism, IPattern, IParadigm
 from clld import interfaces as clldInt
 
 
