@@ -6,15 +6,15 @@ from clld.scripts.util import initializedb, Data
 from clld.db.meta import DBSession
 from clld.db.models import common
 
-import parabank14
-from parabank14 import models
+import parabank
+from parabank import models
 
 
 def main(args):
     data = Data()
 
-    # dataset = common.Dataset(id=parabank14.__name__, domain='parabank14.clld.org')
-    # DBSession.add(dataset)
+    dataset = common.Dataset(id=parabank.__name__, domain='parabank14.clld.org')
+    DBSession.add(dataset)
 
     rawformat = [
         "bruder;bʀuːdɐ;meB;male speaker's elder brother;stan1295;Standard German;48.65;12.47",
