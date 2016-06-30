@@ -53,8 +53,8 @@ class Paradigms(DataTable):
             Col(self, 'pk', model_col=Paradigm.pk),
             Col(self, 'name', model_col=Paradigm.name),
             Col(self, 'description', model_col=Paradigm.description),
-            Col(self, 'languages', model_col=Paradigm.languages),
-            Col(self, 'name', model_col=Paradigm.parameters)
+            #Col(self, 'languages', model_col=Paradigm.languages),
+            #Col(self, 'name', model_col=Paradigm.parameters)
             ]
 
 
