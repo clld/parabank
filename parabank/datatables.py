@@ -3,7 +3,7 @@ from clld.web.datatables.base import Col, LinkCol, DetailsRowLinkCol, IdCol, Lin
 from clld.web.datatables.value import Values
 from clld.web.datatables.parameter import Parameters
 from clld.web.datatables.language import Languages
-from parabank14.models import Syncretism, Pattern, Word, ParabankParameter, Paradigm, ParabankValueSet
+from parabank.models import Syncretism, Pattern, Word, ParabankParameter, Paradigm, ParabankValueSet
 from clld.db.models.common import Language
 
 
