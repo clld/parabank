@@ -15,7 +15,7 @@ from clld import interfaces
 from clld.db.meta import Base, CustomModelMixin
 from clld.db.models.common import Value, ValueSet, Parameter, IdNameDescriptionMixin
 
-import parabank14.interfaces as parabank_interfaces
+import parabank.interfaces as parabank_interfaces
 
 
 class ParadigmLanguage(Base):
