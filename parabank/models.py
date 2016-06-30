@@ -5,36 +5,41 @@ from sqlalchemy import (
     String,
     Integer,
     ForeignKey,
-    UniqueConstraint
+    UniqueConstraint,
+    PrimaryKeyConstraint,
+    Table
     )
 from sqlalchemy.orm import relationship, backref
 
 from clld import interfaces
 from clld.db.meta import Base, CustomModelMixin
-from clld.db.models.common import Value, ValueSet, Parameter,  IdNameDescriptionMixin, HasSourceMixin, Contribution, Language, Unit
+from clld.db.models.common import Value, ValueSet, Parameter, IdNameDescriptionMixin
 
-from parabank import interfaces as parabank_interfaces
+import parabank14.interfaces as parabank_interfaces
 
 
 class ParadigmLanguage(Base):
     """association table for many-to-many lookup between Paradigm and Language"""
     __table_args__ = (UniqueConstraint('paradigm_pk', 'language_pk'),)
-    paradigm_pk = Column(Integer, ForeignKey('paradigm.pk'), primary_key=True)
-    language_pk = Column(Integer, ForeignKey('language.pk'), primary_key=True)
+    pk = Column(Integer, default=False)
+    paradigm_pk = Column(Integer, ForeignKey('paradigm.id'), primary_key=True)
+    language_pk = Column(Integer, ForeignKey('language.id'), primary_key=True)
 
 
 class PatternSyncretism(Base):
     """association table for many-to-many lookup between Pattern and Syncretism"""
-    __table_args__ = (UniqueConstraint('pattern_pk', 'syncretism_pk'),)
+    __table_args__ = (PrimaryKeyConstraint('pattern_pk', 'syncretism_pk'),)
+    pk = Column(Integer, default=False)
     pattern_pk = Column(Integer, ForeignKey('pattern.pk'), primary_key=True)
     syncretism_pk = Column(Integer, ForeignKey('syncretism.pk'), primary_key=True)
 
 
 class ParameterParadigm(Base):
     """association table for many-to-many lookup between Parameter and Paradigm"""
-    parameter_pk = Column(Integer, ForeignKey('parameter.pk'))
-    paradigm_pk = Column(Integer, ForeignKey('paradigm.pk'))
-
+    __table_args__ = (UniqueConstraint('parabankparameter_pk', 'paradigm_pk'),)
+    pk = Column(Integer, default=False)
+    parabankparameter_pk = Column(Integer, ForeignKey('parabankparameter.pk'), primary_key=True)
+    paradigm_pk = Column(Integer, ForeignKey('paradigm.pk'), primary_key=True)
 
 # -----------------------------------------------------------------------------
 # specialized common mapper classes
@@ -79,18 +84,18 @@ class Syncretism(IdNameDescriptionMixin, Base):
     """one-to-many relation to parabankValueSet adds backref column = valuesets
        many-to-many relation to Pattern adds backref column = patterns"""
     pk = Column(Integer, primary_key=True)  # Inherited from Base class
-    name = Column(Unicode, default=True) # Inherited from Base class
-    description = Column(Unicode) # Inherited from Base class
+    #name = Column(Unicode, default=True) # Inherited from Base class
+    #description = Column(Unicode) # Inherited from Base class
 
 
 @implementer(parabank_interfaces.IPattern)
 class Pattern(IdNameDescriptionMixin, Base):
     """one-to-many relation to parabankValueSet adds backref column = valuesets
        many-to-many relation to Syncretism"""
-    #pk = Column(Unicode, primary_key=True) # Inherited from Base class
+    pk = Column(Integer, primary_key=True) # Inherited from Base class
     #name = Column(Unicode, default=True) # Inherited from Base class
     #description = Column(Unicode)  # change to pattern_description # Inherited from Base class
-    #syncretisms = relationship('Syncretism', secondary=PatternSyncretism.__table__, backref='patterns')
+    syncretisms = relationship('Syncretism', secondary=PatternSyncretism.__table__, backref='patterns')
 
 
 @implementer(interfaces.IValueSet)
@@ -105,11 +110,11 @@ class ParabankValueSet(CustomModelMixin, ValueSet):
     pk = Column(Integer, ForeignKey('valueset.pk'), primary_key=True)
 
     # many-to-one with Syncretism
-    syncretism_pk = Column(String, ForeignKey('syncretism.pk'), default=True)
+    syncretism_pk = Column(Integer, ForeignKey('syncretism.pk'))
     syncretism = relationship("Syncretism", backref="all_valuesets")
 
     # many-to-one with Pattern
-    pattern_pk = Column(Unicode, ForeignKey('pattern.pk'), default=True)
+    pattern_pk = Column(Integer, ForeignKey('pattern.pk'))
     pattern = relationship("Pattern", backref="all_valuesets")
 
     # many-to-one with Word covered by clld.models.value
