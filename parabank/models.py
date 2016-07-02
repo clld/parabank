@@ -21,25 +21,22 @@ import parabank.interfaces as parabank_interfaces
 class ParadigmLanguage(Base):
     """association table for many-to-many lookup between Paradigm and Language"""
     __table_args__ = (UniqueConstraint('paradigm_pk', 'language_pk'),)
-    pk = Column(Integer, default=False)
-    paradigm_pk = Column(Integer, ForeignKey('paradigm.id'), primary_key=True)
-    language_pk = Column(Integer, ForeignKey('language.id'), primary_key=True)
+    paradigm_pk = Column(Integer, ForeignKey('paradigm.pk'))
+    language_pk = Column(Integer, ForeignKey('language.pk'))
 
 
 class PatternSyncretism(Base):
     """association table for many-to-many lookup between Pattern and Syncretism"""
-    __table_args__ = (PrimaryKeyConstraint('pattern_pk', 'syncretism_pk'),)
-    pk = Column(Integer, default=False)
-    pattern_pk = Column(Integer, ForeignKey('pattern.pk'), primary_key=True)
-    syncretism_pk = Column(Integer, ForeignKey('syncretism.pk'), primary_key=True)
+    __table_args__ = (UniqueConstraint('pattern_pk', 'syncretism_pk'),)
+    pattern_pk = Column(Integer, ForeignKey('pattern.pk'))
+    syncretism_pk = Column(Integer, ForeignKey('syncretism.pk'))
 
 
 class ParameterParadigm(Base):
     """association table for many-to-many lookup between Parameter and Paradigm"""
     __table_args__ = (UniqueConstraint('parabankparameter_pk', 'paradigm_pk'),)
-    pk = Column(Integer, default=False)
-    parabankparameter_pk = Column(Integer, ForeignKey('parabankparameter.pk'), primary_key=True)
-    paradigm_pk = Column(Integer, ForeignKey('paradigm.pk'), primary_key=True)
+    parabankparameter_pk = Column(Integer, ForeignKey('parabankparameter.pk'))
+    paradigm_pk = Column(Integer, ForeignKey('paradigm.pk'))
 
 # -----------------------------------------------------------------------------
 # specialized common mapper classes
