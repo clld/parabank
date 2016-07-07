@@ -3,8 +3,16 @@ from clld.web.datatables.base import Col, LinkCol, DetailsRowLinkCol, IdCol, Lin
 from clld.web.datatables.value import Values
 from clld.web.datatables.parameter import Parameters
 from clld.web.datatables.language import Languages
-from parabank.models import Syncretism, Pattern, Word, ParabankParameter, Paradigm, ParabankValueSet
+from parabank.models import Syncretism, Pattern, Word, ParabankParameter, Paradigm, ParabankValueSet, ParabankLanguage
 from clld.db.models.common import Language
+from clld.web.util.htmllib import HTML
+from clld.web.util.helpers import link
+
+#class SyncretismInCol(Col):
+#    def format(self, item):
+#        return HTML.ul(
+#            *[HTML.li(link(self.dt.req, syncretism)) for pair in item.syncretisms],
+#            class_="unstyled")
 
 
 class Words(DataTable):
@@ -17,20 +25,30 @@ class Words(DataTable):
             Col(self, 'IPA', model_col=Word.word_ipa),
             #Col(self, 'description', model_col=Word.word_description),
             Col(self, 'valueset', model_col=Word.valueset_pk),
+            Col(self, 'parameter', model_col=ParabankValueSet.parameter_pk),
             #Col(self, 'parameter'),
             Col(self, 'Language'),
             #Col(self, 'Paradigm')
+            Col(self, 'Syncretism')
+
             ]
+
+class ReferencedInCol(Col):
+    def format(self, item):
+        return HTML.ul(
+            *[HTML.li(link(self.dt.req, language)) for language in item.languages],
+            class_="unstyled")
 
 
 class Syncretisms(DataTable):
     # Lists of syncretisms
     def col_defs(self):
         return [
-            LinkCol(self, 'id', model_col=Syncretism.pk),
+            LinkCol(self, 'pk', model_col=Syncretism.pk),
             LinkCol(self, 'id', model_col=Syncretism.id),
             LinkCol(self, 'name', model_col=Syncretism.name),
             Col(self, 'description', model_col=Syncretism.description),
+            ReferencedInCol(self, 'language', bSearchable=False, bSortable=False),
             ]
 
 
@@ -43,6 +61,7 @@ class Patterns(DataTable):
             Col(self, 'id', model_col=Pattern.id),
             Col(self, 'name', model_col=Pattern.name),
             Col(self, 'description', model_col=Pattern.description),
+            ReferencedInCol(self, 'language', bSearchable=False, bSortable=False),
             ]
 
 
@@ -58,7 +77,7 @@ class Paradigms(DataTable):
             ]
 
 
-class ParabankLanguageTable(Languages):
+class ParabankLanguage(Languages):
     def col_defs(self):
         return [
             Col(self, 'Language'),
@@ -66,7 +85,7 @@ class ParabankLanguageTable(Languages):
             Col(self, 'Family'),
             Col(self, 'Paradigm'),
             Col(self, 'Syncretism'),
-            Col(self, 'Source')
+            Col(self, 'Source'),
             ]
 
 
@@ -85,6 +104,6 @@ def includeme(config):
     config.register_datatable('syncretisms', Syncretisms)
     config.register_datatable('patterns', Patterns)
     config.register_datatable('paradigms', Paradigms)
-    config.register_datatable('sentences', ParabankLanguageTable) # route /sentences or /languages
+    config.register_datatable('newlanguages', ParabankLanguage) # route /sentences or /languages
     config.register_datatable('parameters', ParameterTable)
 

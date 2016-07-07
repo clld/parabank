@@ -8,3 +8,5 @@ class IPattern(Interface):
 
 class IParadigm(Interface):
     """marker"""
+
+

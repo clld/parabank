@@ -13,7 +13,7 @@ from sqlalchemy.orm import relationship, backref
 
 from clld import interfaces
 from clld.db.meta import Base, CustomModelMixin
-from clld.db.models.common import Value, ValueSet, Parameter, IdNameDescriptionMixin
+from clld.db.models.common import Value, ValueSet, Parameter, IdNameDescriptionMixin, Language
 
 import parabank.interfaces as parabank_interfaces
 
@@ -22,14 +22,28 @@ class ParadigmLanguage(Base):
     """association table for many-to-many lookup between Paradigm and Language"""
     __table_args__ = (UniqueConstraint('paradigm_pk', 'language_pk'),)
     paradigm_pk = Column(Integer, ForeignKey('paradigm.pk'))
-    language_pk = Column(Integer, ForeignKey('language.pk'))
+    language_pk = Column(Integer, ForeignKey('parabanklanguage.pk'))
 
 
-class PatternSyncretism(Base):
+#class PatternSyncretism(Base):
+#    """association table for many-to-many lookup between Pattern and Syncretism"""
+#    __table_args__ = (UniqueConstraint('pattern_pk', 'syncretism_pk'),)
+#    pattern_pk = Column(Integer, ForeignKey('pattern.pk'))
+#    syncretism_pk = Column(Integer, ForeignKey('syncretism.pk'))
+
+
+class LanguageSyncretism(Base):
     """association table for many-to-many lookup between Pattern and Syncretism"""
-    __table_args__ = (UniqueConstraint('pattern_pk', 'syncretism_pk'),)
-    pattern_pk = Column(Integer, ForeignKey('pattern.pk'))
+    __table_args__ = (UniqueConstraint('language_pk', 'syncretism_pk'),)
+    language_pk = Column(Integer, ForeignKey('parabanklanguage.pk'))
     syncretism_pk = Column(Integer, ForeignKey('syncretism.pk'))
+
+
+class LanguagePattern(Base):
+    """association table for many-to-many lookup between Pattern and Syncretism"""
+    __table_args__ = (UniqueConstraint('language_pk', 'pattern_pk'),)
+    language_pk = Column(Integer, ForeignKey('parabanklanguage.pk'))
+    pattern_pk = Column(Integer, ForeignKey('pattern.pk'))
 
 
 class ParameterParadigm(Base):
@@ -43,16 +57,14 @@ class ParameterParadigm(Base):
 # -----------------------------------------------------------------------------
 
 
-#@implementer(interfaces.ILanguage)
-#class ParabankLanguage(CustomModelMixin, Language):
-#    """language used as given by CLLD +
-#       many-to-many with Paradigm adds backref column: paradigms"""
-#    pk = Column(Integer, ForeignKey('language.pk'), primary_key=True)
-
-#@implementer(interfaces.IContribution)
-#class ParabankContribution(CustomModelMixin, Contribution):
-#    """conrtibution used as given by CLLD"""
-#    pk = Column(Integer, ForeignKey('contribution.pk'), primary_key=True)
+@implementer(interfaces.ILanguage)
+class ParabankLanguage(CustomModelMixin, Language):
+    """language used as given by CLLD +
+       many-to-many with Paradigm adds backref column: paradigms"""
+    pk = Column(Integer, ForeignKey('language.pk'), primary_key=True)
+    #lang_name = Column(Unicode, default=True)
+    #language_name = Column(Unicode)
+    #glottocode = Column(Unicode)
 
 
 @implementer(interfaces.IValue)
@@ -92,7 +104,7 @@ class Pattern(IdNameDescriptionMixin, Base):
     pk = Column(Integer, primary_key=True) # Inherited from Base class
     #name = Column(Unicode, default=True) # Inherited from Base class
     #description = Column(Unicode)  # change to pattern_description # Inherited from Base class
-    syncretisms = relationship('Syncretism', secondary=PatternSyncretism.__table__, backref='patterns')
+    #syncretisms = relationship('Syncretism', secondary=PatternSyncretism.__table__, backref='patterns')
 
 
 @implementer(interfaces.IValueSet)
@@ -141,7 +153,11 @@ class Paradigm(IdNameDescriptionMixin, Base):
     id = Column(Unicode)
     name = Column(Unicode, default=True)
     description = Column(Unicode)
-    languages = relationship('Language', secondary=ParadigmLanguage.__table__, backref='paradigms')
+    languages = relationship('ParabankLanguage', secondary=ParadigmLanguage.__table__, backref='paradigms')
     parameters = relationship('ParabankParameter', secondary=ParameterParadigm.__table__, backref='paradigms')
 
     # __mapper_args__ = {'polymorphic_identity': 'paradigm',}
+
+
+ParabankLanguage.syncretisms = relationship('Syncretism', secondary=LanguageSyncretism.__table__, backref='languages')
+ParabankLanguage.patterns = relationship('Pattern', secondary=LanguagePattern.__table__, backref='languages')
