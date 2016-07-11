@@ -17,6 +17,5 @@ def main(global_config, **settings):
     config.register_resource('pattern', Pattern, IPattern, with_index=True)
     config.register_resource('paradigm', Paradigm, IParadigm, with_index=True)
     config.register_resource('word', Word, clldInt.IValue, with_index=True)
-    config.register_resource('newlanguage', ParabankLanguage, clldInt.ILanguage, with_index=True)
 
     return config.make_wsgi_app()

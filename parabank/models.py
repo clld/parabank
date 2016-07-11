@@ -63,7 +63,6 @@ class ParabankLanguage(CustomModelMixin, Language):
        many-to-many with Paradigm adds backref column: paradigms"""
     pk = Column(Integer, ForeignKey('language.pk'), primary_key=True)
     #lang_name = Column(Unicode, default=True)
-    #language_name = Column(Unicode)
     #glottocode = Column(Unicode)
 
 

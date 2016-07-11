@@ -495,6 +495,22 @@ def main(args):
         for lang in l:
             data['Pattern'][p].languages.append(data['ParabankLanguage'][lang])
 
+    paradigm_list = [["1", "all terms", "all kinship terms", ["meB", "myB"]],
+                     ["2", "siblings", "all brothers and sisters", ["meB", "myB", "meZ", "myZ", "feB", "fyB", "feZ", "fyZ"]],
+                     ]
+
+    for sParadigm in paradigm_list:  # Patterns are added to data
+        data.add(models.Paradigm,
+                 sParadigm[1],
+                 id=sParadigm[0],
+                 name=sParadigm[1],
+                 description=sParadigm[2],
+                 parameters=[],
+                 )
+
+
+        for param in sParadigm[3]:
+            data['Paradigm'][sParadigm[1]].parameters.append(data['ParabankParameter'][param])
 
 def prime_cache(args):
     """If data needs to be denormalized for lookup, do that here.
