@@ -12,7 +12,26 @@ def language_detail_html(context=None, request=None, **kw):
 
     language_glott = unicode(request.path_url[-8:])
     #print language_glott
+    parameter_list = [
+        "mF", "mM", "fF", "fM",
+        "mEB", "mYB", "mEZ", "mYZ", "fEB", "fYB", "fEZ", "fYZ",
+        "mFBS", "mFBD", "mFZS", "mFZD", "mMBS", "mMBD", "mMZS", "mMZD",
+        "fFBS", "fFBD", "fFZS", "fFZD", "fMBS", "fMBD", "fMZS", "fMZD",
+        "mFeB", "mFyB", "mFeZ", "mFyZ", "mMeB", "mMyB", "mMeZ", "mMyZ",
+        "fFeB", "fFyB", "fFeZ", "fFyZ", "fMeB", "fMyB", "fMeZ", "fMyZ",
+        "mFF", "mFM", "mMF", "mMM", "mSS", "mSD", "mDS", "mDD",
+        "fFF", "fFM", "fMF", "fMM", "fSS", "fSD", "fDS", "fDD",
+        "meBS", "meBD", "myBS", "myBD", "meZS", "meZD", "myZS", "myZD",
+        "feBS", "feBD", "fyBS", "fyBD", "feZS", "feZD", "fyZS", "fyZD",
+        "mS", "mD", "fS", "fD",
+        "mW", "fH", "mWF", "mWM", "fHF", "fHM",
+        "mSW", "mDH", "fSW", "fDH",
+        ]
+
     param_word = {}
+    for pa in parameter_list:
+        param_word[pa] = "-"
+
     for each in DBSession.query(ParabankLanguage).filter(ParabankLanguage.id == language_glott):
         langu_key = each.pk
 
@@ -23,32 +42,233 @@ def language_detail_html(context=None, request=None, **kw):
                              .filter(ParabankValueSet.language_pk == langu_key):
 
         param_word[x[2].name] = x[1].word_name
+    #print str(param_word)
+    paradigm_tables = \
+        {
+        'siblings':
+            HTML.table(
+                HTML.thead(
+                    HTML.th("", style="height:26px; font-weight:"),
+                    HTML.th("eB",),
+                    HTML.th("yB",),
+                    HTML.th("eZ",),
+                    HTML.th("yZ",),
+                    style="background: #F2F2F2",
+                ),
 
-    return {'project': HTML.table(
-        HTML.thead(
-            HTML.th("", style="height:32px; font-weight:"),
-            HTML.th("elder brother", style="height:32px; font-weight: bold; padding: 5px"),
-            HTML.th("younger brother", style="height:32px; font-weight: bold; padding: 5px"),
-            HTML.th("older sister", style="height:32px; font-weight: bold; padding: 5px"),
-            HTML.th("younger sister", style="height:32px; font-weight: bold; padding: 5px"),
-            style="background: #F2F2F2",
-        ),
+                HTML.tr(
+                    HTML.td('male', style="height:26px; font-weight: bold; background: #F2F2F2; padding: 5px"),
+                    HTML.td(param_word['meB'],),
+                    HTML.td(param_word['myB'],),
+                    HTML.td(param_word['meZ'],),
+                    HTML.td(param_word['myZ'],),
+                ),
 
-        HTML.tr(
-            HTML.td('male', style="height:32px; font-weight: bold; background: #F2F2F2; padding: 5px"),
-            HTML.td(param_word['meB'], style="height:32px; border: 1px solid gray; padding: 5px"),
-            HTML.td(param_word['myB'], style="height:32px; border: 1px solid gray; padding: 5px"),
-            HTML.td(param_word['meZ'], style="height:32px; border: 1px solid gray; padding: 5px"),
-            HTML.td(param_word['myZ'], style="height:32px; border: 1px solid gray; padding: 5px"),
-        ),
+                HTML.tr(
+                    HTML.td('female', style="height:26px; font-weight: bold; background: #F2F2F2; padding: 5px"),
+                    HTML.td(param_word['feB'],),
+                    HTML.td(param_word['fyB'],),
+                    HTML.td(param_word['feZ'],),
+                    HTML.td(param_word['fyZ'],),
+                )
+            ),
+        'cousins':
+            HTML.table(
+                HTML.thead(
+                    HTML.th("", style="height:26px; font-weight:"),
+                    HTML.th("FBS",),
+                    HTML.th("FBD",),
+                    HTML.th("FZS",),
+                    HTML.th("FZD",),
+                    HTML.th("MBS",),
+                    HTML.th("MBD",),
+                    HTML.th("MZS",),
+                    HTML.th("MZD",),
+                    style="background: #F2F2F2",
+                ),
 
-        HTML.tr(
-            HTML.td('female', style="height:32px; font-weight: bold; background: #F2F2F2; padding: 5px"),
-            HTML.td(param_word['feB'], style="height:32px; border: 1px solid gray; padding: 5px"),
-            HTML.td(param_word['fyB'], style="height:32px; border: 1px solid gray; padding: 5px"),
-            HTML.td(param_word['feZ'], style="height:32px; border: 1px solid gray; padding: 5px"),
-            HTML.td(param_word['fyZ'], style="height:32px; border: 1px solid gray; padding: 5px"),
-        )
-    )}
+                HTML.tr(
+                    HTML.td('male', style="height:26px; font-weight: bold; background: #F2F2F2; padding: 5px"),
+                    HTML.td(param_word['mFBS'],),
+                    HTML.td(param_word['mFBD'],),
+                    HTML.td(param_word['mFZS'],),
+                    HTML.td(param_word['mFZD'],),
+                    HTML.td(param_word['mMBS'],),
+                    HTML.td(param_word['fMBD'],),
+                    HTML.td(param_word['fMZS'],),
+                    HTML.td(param_word['fMZD'],),
+                ),
+
+                HTML.tr(
+                    HTML.td('female', style="height:26px; font-weight: bold; background: #F2F2F2; padding: 5px"),
+                    HTML.td(param_word['fFBS'],),
+                    HTML.td(param_word['fFBD'],),
+                    HTML.td(param_word['fFZS'],),
+                    HTML.td(param_word['fFZD'],),
+                    HTML.td(param_word['fMBS'],),
+                    HTML.td(param_word['fMBD'],),
+                    HTML.td(param_word['fMZS'],),
+                    HTML.td(param_word['fMZD'],),
+                )
+            ),
+        'parents':
+            HTML.table(
+                HTML.thead(
+                    HTML.th("",),
+                    HTML.th("FEB",),
+                    HTML.th("FYB",),
+                    HTML.th("FEZ",),
+                    HTML.th("FYZ",),
+                    HTML.th("F",),
+                    HTML.th("M",),
+                    HTML.th("MEB",),
+                    HTML.th("MYB",),
+                    HTML.th("MEZ",),
+                    HTML.th("MYZ",),
+                ),
+
+                HTML.tr(
+                    HTML.td('male', style="height:26px; font-weight: bold; background: #F2F2F2; padding: 5px"),
+                    HTML.td(param_word['mFeB'],),
+                    HTML.td(param_word['mFyB'],),
+                    HTML.td(param_word['mFeZ'],),
+                    HTML.td(param_word['mFyZ'],),
+                    HTML.td(param_word['mF'],),
+                    HTML.td(param_word['mM'],),
+                    HTML.td(param_word['mMeB'],),
+                    HTML.td(param_word['mMyB'],),
+                    HTML.td(param_word['mMeZ'],),
+                    HTML.td(param_word['mMyZ'],),
+                ),
+
+                HTML.tr(
+                    HTML.td('female', style="height:26px; font-weight: bold; background: #F2F2F2; padding: 5px"),
+                    HTML.td(param_word['fFeB'],),
+                    HTML.td(param_word['fFyB'],),
+                    HTML.td(param_word['fFeZ'],),
+                    HTML.td(param_word['fFyZ'],),
+                    HTML.td(param_word['mF'],),
+                    HTML.td(param_word['mM'],),
+                    HTML.td(param_word['fMeB'],),
+                    HTML.td(param_word['fMyB'],),
+                    HTML.td(param_word['fMeZ'],),
+                    HTML.td(param_word['fMyZ'],),
+                )
+            ),
+        'grand':
+            HTML.table(
+                HTML.thead(
+                    HTML.th("", ),
+                    HTML.th("FF", ),
+                    HTML.th("FM", ),
+                    HTML.th("MF", ),
+                    HTML.th("MM", ),
+                    HTML.th("SS", ),
+                    HTML.th("SD", ),
+                    HTML.th("DS", ),
+                    HTML.th("DD", ),
+                ),
+
+                HTML.tr(
+                    HTML.td('male', style="height:26px; font-weight: bold; background: #F2F2F2; padding: 5px"),
+                    HTML.td(param_word['mFF'], ),
+                    HTML.td(param_word['mFM'], ),
+                    HTML.td(param_word['mMF'], ),
+                    HTML.td(param_word['mMM'], ),
+                    HTML.td(param_word['mSS'], ),
+                    HTML.td(param_word['mSD'], ),
+                    HTML.td(param_word['mDS'], ),
+                    HTML.td(param_word['mDD'], ),
+                ),
+
+                HTML.tr(
+                    HTML.td('female', style="height:26px; font-weight: bold; background: #F2F2F2; padding: 5px"),
+                    HTML.td(param_word['fFF'], ),
+                    HTML.td(param_word['fFM'], ),
+                    HTML.td(param_word['fMF'], ),
+                    HTML.td(param_word['fMM'], ),
+                    HTML.td(param_word['fSS'], ),
+                    HTML.td(param_word['fSD'], ),
+                    HTML.td(param_word['fDS'], ),
+                    HTML.td(param_word['fDD'], ),
+                )
+            ),
+
+        'sons':
+            HTML.table(
+                HTML.thead(
+                    HTML.th("", ),
+                    HTML.th("EBS", ),
+                    HTML.th("EBD", ),
+                    HTML.th("YBS", ),
+                    HTML.th("YBD", ),
+                    HTML.th("S", ),
+                    HTML.th("D", ),
+                    HTML.th("EZS", ),
+                    HTML.th("EZD", ),
+                    HTML.th("YZS", ),
+                    HTML.th("YZD", ),
+                ),
+
+                HTML.tr(
+                    HTML.td('male', style="height:26px; font-weight: bold; background: #F2F2F2; padding: 5px"),
+                    HTML.td(param_word['meBS'], ),
+                    HTML.td(param_word['meBD'], ),
+                    HTML.td(param_word['myBS'], ),
+                    HTML.td(param_word['myBD'], ),
+                    HTML.td(param_word['mS'], ),
+                    HTML.td(param_word['mD'], ),
+                    HTML.td(param_word['meZS'], ),
+                    HTML.td(param_word['meZD'], ),
+                    HTML.td(param_word['myZS'], ),
+                    HTML.td(param_word['myZD'], ),
+                ),
+
+                HTML.tr(
+                    HTML.td('female', style="height:26px; font-weight: bold; background: #F2F2F2; padding: 5px"),
+                    HTML.td(param_word['feBS'], ),
+                    HTML.td(param_word['feBD'], ),
+                    HTML.td(param_word['fyBS'], ),
+                    HTML.td(param_word['fyBD'], ),
+                    HTML.td(param_word['fS'], ),
+                    HTML.td(param_word['fD'], ),
+                    HTML.td(param_word['feZS'], ),
+                    HTML.td(param_word['feZD'], ),
+                    HTML.td(param_word['fyZS'], ),
+                    HTML.td(param_word['fyZD'], ),
+                )
+            ),
+
+        'inlaws':
+            HTML.table(
+                HTML.thead(
+                    HTML.th("", ),
+                    HTML.th("H / W", ),
+                    HTML.th("HF / WF", ),
+                    HTML.th("HM / WM", ),
+                    HTML.th("SW", ),
+                    HTML.th("DH", ),
+                ),
+
+                HTML.tr(
+                    HTML.td('male', style="height:26px; font-weight: bold; background: #F2F2F2; padding: 5px"),
+                    HTML.td(param_word['mW'], ),
+                    HTML.td(param_word['mWF'], ),
+                    HTML.td(param_word['mWM'], ),
+                    HTML.td(param_word['mSW'], ),
+                    HTML.td(param_word['mDH'], ),
+                ),
+
+                HTML.tr(
+                    HTML.td('female', style="height:26px; font-weight: bold; background: #F2F2F2; padding: 5px"),
+                    HTML.td(param_word['fH'], ),
+                    HTML.td(param_word['fHF'], ),
+                    HTML.td(param_word['fHM'], ),
+                    HTML.td(param_word['fSW'], ),
+                    HTML.td(param_word['fDH'], ),
+                )
+            ),
+        }
+    return paradigm_tables
 
 #style="height:32px; border: 1px solid black; font-weight: bold;"
