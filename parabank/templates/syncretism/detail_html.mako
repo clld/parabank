@@ -2,8 +2,8 @@
 <%inherit file="../home_comp.mako"/>
 <%! active_menu_item = "syncretisms" %>
 
-<h3>Syncretism</h3>
+<h3>Syncretism: ${ctx.name}</h3>
 
+<h5>${ctx.description}</h5>
 
-This is the detail
-
+${req.map.render()}

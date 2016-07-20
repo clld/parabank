@@ -58,7 +58,7 @@ class Patterns(DataTable):
             # DetailsRowLinkCol(self, 'd'),
             #Col(self, 'pk', model_col=Pattern.pk),
             #Col(self, 'id', model_col=Pattern.id),
-            Col(self, 'name', model_col=Pattern.name),
+            LinkCol(self, 'name', model_col=Pattern.name),
             Col(self, 'description', model_col=Pattern.description),
             LanguageInCol(self, 'language', bSearchable=False, bSortable=False),
             ]
@@ -115,9 +115,10 @@ class Values(datatables.Values):
 
         if self.language:
             return [
-                Col(self, 'id'),
+                #Col(self, 'id'),
                 LinkCol(self, 'name'),
                 Col(self, 'ipa', model_col=Word.word_ipa),
+                Col(self, 'reference', model_col=Word.word_reference),
                 LinkCol(self,
                         'parameter',
                         sTitle=self.req.translate('Parameter'),

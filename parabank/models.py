@@ -64,6 +64,7 @@ class ParabankLanguage(CustomModelMixin, Language):
     pk = Column(Integer, ForeignKey('language.pk'), primary_key=True)
     #lang_name = Column(Unicode, default=True)
     #glottocode = Column(Unicode)
+    comment = Column(Unicode)
 
 
 @implementer(interfaces.IValue)
@@ -74,6 +75,9 @@ class Word(CustomModelMixin, Value):
     word_name = Column(Unicode, default=True)
     word_ipa = Column(Unicode)
     word_description = Column(Unicode)
+    word_reference = Column(Unicode)
+    word_honorific = Column(Unicode)
+    word_honorific_reference = Column(Unicode)
     sound = Column(Unicode)
 
 
