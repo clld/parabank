@@ -1,7 +1,11 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 import sys
-import glob, os
+import os
+import getpass
+
+from clldutils.path import Path
+from clldutils.dsv import reader
 from clld.scripts.util import initializedb, Data
 from clld.db.meta import DBSession
 from clld.db.models import common
@@ -18,6 +22,12 @@ langs_of_patt = {} # Dictionary: {pattern: [language,]}
 patts_of_lang = {} # Dictionary: {language: [pattern,]}
 
 
+if getpass.getuser().endswith('forkel'):
+    DATA_DIR = Path(os.path.expanduser('~')).joinpath('venvs', 'parabank', 'data')
+else:
+    DATA_DIR = Path("C:/Users/Wolfgang/Documents/Australien/Parabank/Parabank Data")
+
+
 def SyncretismPatternSetup(list_of_entries):
     # set up syncs_of_lang, patts_of_lang dictionaries
     # create lanug_dict for later lookup of syncretisms and patterns
@@ -26,9 +36,7 @@ def SyncretismPatternSetup(list_of_entries):
     global syncs_of_lang
     global patts_of_lang
 
-    for element in list_of_entries:
-
-        element_split = element.split(";")
+    for element_split in list_of_entries:
         if element_split[5] not in syncs_of_lang:
             syncs_of_lang[element_split[7]] = []
             patts_of_lang[element_split[7]] = []
@@ -39,6 +47,7 @@ def SyncretismPatternSetup(list_of_entries):
             lang_dict[element_split[7]] = {}
             lang_dict[element_split[7]][element_split[2]] = element_split[0]
     #print str(lang_dict)
+
 
 def SyncretismFinder(syncretism_name, *args):
     # syncretism_name = name of the syncretism
@@ -108,76 +117,60 @@ def main(args):
     dataset = common.Dataset(id=parabank.__name__, domain='parabank.clld.org')
     DBSession.add(dataset)
 
-    # Languages get imported
-    language_list = []
-    l = open("C:/Users/Wolfgang/Documents/Australien/Parabank/Parabank Data/data_basics/all_languages.txt", 'r')
-    next(l)
-    for la in l:
-        language_list.append(str(la).decode('utf-8'))
-
-    for each in language_list:
-        langu = each.split(';')
+    for langu in reader(DATA_DIR.joinpath('data_basics', 'all_languages.txt'), delimiter=';', dicts=True):
         data.add(models.ParabankLanguage,
-                 langu[0],
-                 id=langu[0],
-                 name=langu[1],
-                 latitude=float(langu[2]),
-                 longitude=float(langu[3]),
+                 langu['glotto'],
+                 id=langu['glotto'],
+                 name=langu['language name'],
+                 latitude=float(langu['latitude']),
+                 longitude=float(langu['longitude']),
                  patterns=[],
-                 comment=langu[4],)
-
-    # for data inport from local computer
-    rawformat = []
-
-    os.chdir("C:/Users/Wolfgang/Documents/Australien/Parabank/Parabank Data/data_open_office")
-    for language_file in glob.glob("*.txt"):
-        f = open(language_file, 'r')
-        next(f)
-        for line in f:
-            rawformat.append(str(line).decode('utf-8'))
+                 comment=langu['comment'],)
 
     # each datatype is stored in a dictionary to filter out duplicates
     parameter_dict = {}
     valueset_dict = {}
     word_dict = {}
+    rows = []
 
-    for datapoint in rawformat:
-        list_of_entries = datapoint.split(";")
+    for fname in DATA_DIR.joinpath('data_open_office').glob('*.txt'):
+        for i, list_of_entries in enumerate(reader(fname, delimiter=';')):
+            if i > 0:
+                rows.append(list_of_entries)
+                # make the variables more readable and compile some of them to unique keys
+                word = list_of_entries[0]
+                word_ipa = list_of_entries[1]
+                word_key = list_of_entries[2] + "-" + list_of_entries[7]
+                valueset_key = "vs-" + list_of_entries[2] + "-" + list_of_entries[7]
+                parameter_abbr = list_of_entries[2]
+                parameter_desc = list_of_entries[3]
+                glotto = list_of_entries[7]
 
-        # make the variables more readable and compile some of them to unique keys
-        word = list_of_entries[0]
-        word_ipa = list_of_entries[1]
-        word_key = list_of_entries[2] + "-" + list_of_entries[7]
-        valueset_key = "vs-" + list_of_entries[2] + "-" + list_of_entries[7]
-        parameter_abbr = list_of_entries[2]
-        parameter_desc = list_of_entries[3]
-        glotto = list_of_entries[7]
+                # collect all parameters
+                if parameter_abbr not in parameter_dict:
+                    parameter_dict[parameter_abbr] = [parameter_abbr, parameter_desc]
 
-        # collect all parameters
-        if parameter_abbr not in parameter_dict:
-            parameter_dict[parameter_abbr] = [parameter_abbr, parameter_desc]
+                # collect all valuesets
+                valueset_dict[valueset_key] = [valueset_key, parameter_abbr, glotto]
 
-        # collect all valuesets
-        valueset_dict[valueset_key] = [valueset_key, parameter_abbr, glotto]
+                # collect all words
+                word_dict[word_key] = [word_key, word, word_ipa, valueset_key, ]
 
-        # collect all words
-        word_dict[word_key] = [word_key, word, word_ipa, valueset_key, ]
-
-    for k, v in parameter_dict.iteritems():  # Parameters get stored in data
+    for k, v in parameter_dict.items():  # Parameters get stored in data
         data.add(models.ParabankParameter,
                  k,
                  id=k,
                  name=k,
                  description=v[1])
 
-    for k, v in valueset_dict.iteritems():  # ValueSets get stored in data
+    for k, v in valueset_dict.items():  # ValueSets get stored in data
         data.add(models.ParabankValueSet,
                  k,
                  id=k,
                  language=data['ParabankLanguage'][v[2]],
                  parameter=data['ParabankParameter'][v[1]])
 
-    for k, v in word_dict.iteritems():  # Words get stored in data
+    for k, v in word_dict.items():  # Words get stored in data
         DBSession.add(models.Word(id=k,
                                   name=v[1],
                                   word_name=v[1],
@@ -185,7 +178,7 @@ def main(args):
                                   valueset=data['ParabankValueSet'][v[3]]))
 
     # read the rawinput again to look for Syncretisms and Patterns
-    SyncretismPatternSetup(rawformat)
+    SyncretismPatternSetup(rows)
 
     syncretism_list = [
         ["1", "grandparents", "all grandparents have the same address term"],
