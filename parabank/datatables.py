@@ -7,6 +7,8 @@ from parabank.models import Syncretism, Pattern, Word, ParabankParameter, Paradi
 #from clld.db.models.common import Language
 from clld.web.util.htmllib import HTML
 from clld.web.util.helpers import link
+from clld.web.datatables.language import Languages
+from clld.db.meta import DBSession
 
 
 class Words(DataTable):
@@ -38,6 +40,12 @@ class ParameterInCol(Col):
             *[link(self.dt.req, parameter, style_="padding-left:10px") for parameter in item.parameters],
             class_="unstyled")
 
+class LanguageUnorderedInCol(Col):
+    def format(self, item):
+        return HTML.p(
+            *[link(self.dt.req, language, style_="padding-left:10px") + "," for language in item.languages],
+            class_="unstyled")
+
 
 class Syncretisms(DataTable):
     # Lists of syncretisms
@@ -47,20 +55,25 @@ class Syncretisms(DataTable):
             #LinkCol(self, 'id', model_col=Syncretism.id),
             LinkCol(self, 'name', model_col=Syncretism.name),
             Col(self, 'description', model_col=Syncretism.description),
-            LanguageInCol(self, 'language', bSearchable=False, bSortable=False),
+            Col(self, 'notation', model_col=Syncretism.notation),
+            LanguageUnorderedInCol(self, 'language', bSearchable=False, bSortable=False),
+
             ]
 
 
 class Patterns(DataTable):
+
     # Lists of patterns
     def col_defs(self):
+
         return [
             # DetailsRowLinkCol(self, 'd'),
             #Col(self, 'pk', model_col=Pattern.pk),
             #Col(self, 'id', model_col=Pattern.id),
             LinkCol(self, 'name', model_col=Pattern.name),
             Col(self, 'description', model_col=Pattern.description),
-            LanguageInCol(self, 'language', bSearchable=False, bSortable=False),
+            Col(self, 'notation', model_col=Syncretism.notation),
+            LanguageUnorderedInCol(self, 'language', bSearchable=False, bSortable=False),
             ]
 
 
@@ -97,15 +110,25 @@ class PatternInCol(Col):
             *[HTML.li(link(self.dt.req, pattern)) for pattern in item.patterns],
             class_="unstyled")
 
-class Languages(datatables.Languages):
+
+class ParabankLanguages(Languages):
+
+    def base_query(self, query):
+        # if self.pattern:
+        # joined table language and pattern
+        # filter self.pattern.languages
+        return query
+
     def col_defs(self):
+
         return [
             Col(self, 'id'),
             LinkCol(self, 'name'),
             #Col(self, 'latitude'),
             #Col(self, 'longitude'),
+            Col(self, 'contribution'),
             SyncretismInCol(self, 'syncretism', bSearchable=False, bSortable=False),
-            SyncretismInCol(self, 'pattern', bSearchable=False, bSortable=False),
+            PatternInCol(self, 'pattern', bSearchable=False, bSortable=False),
         ]
 
 
@@ -118,12 +141,13 @@ class Values(datatables.Values):
                 #Col(self, 'id'),
                 LinkCol(self, 'name'),
                 Col(self, 'ipa', model_col=Word.word_ipa),
-                Col(self, 'reference', model_col=Word.word_reference),
+                Col(self, 'alternative', model_col=Word.word_alternative),
                 LinkCol(self,
                         'parameter',
                         sTitle=self.req.translate('Parameter'),
                         model_col=ParabankParameter.name,
                         get_object=lambda i: i.valueset.parameter),
+                Col(self, 'comment', model_col=Word.word_comment),
             ]
         if self.parameter:
             return [
@@ -136,12 +160,14 @@ class Values(datatables.Values):
                         get_object=lambda i: i.valueset.language),
             ]
 
+
 def includeme(config):
     config.register_datatable('words', Words)
     config.register_datatable('syncretisms', Syncretisms)
     config.register_datatable('patterns', Patterns)
     config.register_datatable('paradigms', Paradigms)
     config.register_datatable('parameters', ParameterTable)
-    config.register_datatable('languages', Languages)
+    config.register_datatable('languages', ParabankLanguages)
     config.register_datatable('values', Values)
+
 
