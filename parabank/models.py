@@ -76,8 +76,8 @@ class Word(CustomModelMixin, Value):
     word_ipa = Column(Unicode)
     word_description = Column(Unicode)
     word_reference = Column(Unicode)
-    word_honorific = Column(Unicode)
-    word_honorific_reference = Column(Unicode)
+    word_alternative = Column(Unicode)
+    word_comment = Column(Unicode)
     sound = Column(Unicode)
 
 
@@ -98,6 +98,7 @@ class Syncretism(IdNameDescriptionMixin, Base):
     pk = Column(Integer, primary_key=True)  # Inherited from Base class
     #name = Column(Unicode, default=True) # Inherited from Base class
     #description = Column(Unicode) # Inherited from Base class
+    notation = Column(Unicode)
 
 
 @implementer(parabank_interfaces.IPattern)
@@ -108,6 +109,7 @@ class Pattern(IdNameDescriptionMixin, Base):
     #name = Column(Unicode, default=True) # Inherited from Base class
     #description = Column(Unicode)  # change to pattern_description # Inherited from Base class
     #syncretisms = relationship('Syncretism', secondary=PatternSyncretism.__table__, backref='patterns')
+    notation = Column(Unicode)
 
 
 @implementer(interfaces.IValueSet)

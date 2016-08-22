@@ -114,8 +114,34 @@ def main(args):
     data = Data()
 
     # each CLLD APplication has one dataset
-    dataset = common.Dataset(id=parabank.__name__, domain='parabank.clld.org')
+    #dataset = common.Dataset(id=parabank.__name__, domain='parabank.clld.org')
+
+    data.add(
+        common.Contributor, 'barthwolfgang',
+        id='barthwolfgang',
+        name="Wolfgang Barth",
+        url="http://www.dynamicsoflanguage.edu.au/")
+
+    dataset = common.Dataset(
+    id= 'parabank',
+    name='Parabank',
+    description = 'Database of kinship terminology',
+    domain = 'parabank.clld.org',
+    publisher_name="CoEDL Centre of Excellence for the Dynamics of Language",
+    publisher_place="Canberra, Australia",
+    publisher_url="http://www.dynamicsoflanguage.edu.au/",
+    license = 'http://creativecommons.org/licenses/by/3.0/',
+    contact = 'wolfgang.barth@anu.edu.au',
+    jsondata={
+        'license_icon': 'http://wals.info/static/images/cc_by_nc_nd.png',
+        'license_name': 'Creative Commons Attribution-NonCommercial-NoDerivs 2.0'})
     DBSession.add(dataset)
+
+    for i, editor in enumerate(['barthwolfgang']):
+        common.Editor(dataset=dataset, contributor=data['Contributor'][editor], ord=i + 1)
+
+    contrib = common.Contribution(id='contrib', name='the contribution')
+
 
     for langu in reader(DATA_DIR.joinpath('data_basics', 'all_languages.txt'), delimiter=';', dicts=True):
         data.add(models.ParabankLanguage,
@@ -144,6 +170,8 @@ def main(args):
                 valueset_key = "vs-" + list_of_entries[2] + "-" + list_of_entries[7]
                 parameter_abbr = list_of_entries[2]
                 parameter_desc = list_of_entries[3]
+                word_alternative = list_of_entries[4]
+                word_comment = list_of_entries[5]
                 glotto = list_of_entries[7]
 
                 # collect all parameters
@@ -154,7 +182,12 @@ def main(args):
                 valueset_dict[valueset_key] = [valueset_key, parameter_abbr, glotto]
 
                 # collect all words
-                word_dict[word_key] = [word_key, word, word_ipa, valueset_key, ]
+                word_dict[word_key] = [word_key,
+                                       word,
+                                       word_ipa,
+                                       valueset_key,
+                                       word_alternative,
+                                       word_comment]
 
     for k, v in parameter_dict.items():  # Parameters get stored in data
         data.add(models.ParabankParameter,
@@ -164,27 +197,32 @@ def main(args):
                  description=v[1])
 
     for k, v in valueset_dict.items():  # ValueSets get stored in data
+        print str(k) 
         data.add(models.ParabankValueSet,
                  k,
                  id=k,
                  language=data['ParabankLanguage'][v[2]],
-                 parameter=data['ParabankParameter'][v[1]])
+                 parameter=data['ParabankParameter'][v[1]],
+                 contribution=contrib)
+
 
     for k, v in word_dict.items():  # Words get stored in data
         DBSession.add(models.Word(id=k,
                                   name=v[1],
                                   word_name=v[1],
                                   word_ipa=v[2],
+                                  word_alternative=v[4],
+                                  word_comment=v[5],
                                   valueset=data['ParabankValueSet'][v[3]]))
 
     # read the rawinput again to look for Syncretisms and Patterns
     SyncretismPatternSetup(rows)
 
     syncretism_list = [
-        ["1", "grandparents", "all grandparents have the same address term"],
-        ["2", "sisters", "all sisters have the same address term"],
-        ["3", "brothers", "all brothers have the same address term"],
-        ["4", "father-in-law", "all fathers-in-law have the same address term"]
+        ["1", "grandparents", "all grandparents have the same address term", "(mFF, mMF, fFF, fMF)"],
+        ["2", "sisters", "all sisters have the same address term", "(meZ, myZ, feZ, fyZ)"],
+        ["3", "brothers", "all brothers have the same address term", "(meB, myB, feB, fyB)"],
+        ["4", "father-in-law", "all fathers-in-law have the same address term", "(fHF, mWF)"]
         ]
 
     # all syncretisms you want to look up have to be added here with name and parameters
@@ -199,6 +237,7 @@ def main(args):
                  id=sSyncretism[0],
                  name=sSyncretism[1],
                  description=sSyncretism[2],
+                 notation=sSyncretism[3],
                  languages=[],
                  )
 
@@ -207,9 +246,20 @@ def main(args):
             data['Syncretism'][s].languages.append(data['ParabankLanguage'][lang])
 
     pattern_list = [
-        ["1", "gender division in siblings", "the siblings are in two groups depending on the gender"],
-        ["2", "age division in siblings", "the siblings are in two groups depending on the relative age to the speaker"],
-        ["3", "sons vs. daughters", "children are in two groups depending on their gender"]
+        ["1", "gender division in siblings", "Siblings are in two groups depending on the gender",
+         "(meZ, myZ, feZ, fyZ) (meB, myB, feB, fyB)"],
+        ["2", "age division in siblings", "Siblings are in two groups depending on the relative age to the speaker",
+         "(meB, meZ, feB, feZ) (myB, myZ, fyB, fyZ)"],
+        ["3", "sons vs. daughters", "Children are in two groups depending on their gender",
+         "(mS, fS) (mD, fD)"],
+        ["4", "siblings in four groups young/old - male/female", "Siblings are in four groups of older/younger, male/female distinction",
+         "(meZ, feZ) (meB, feB) (myB, myB) (fyB fyB)"],
+        ["5", "Hawaiian Kinship System",
+         "Differences are distinguished by generation and by gender",
+         "(meB, myB, mFBS, mFZS, mMBS, mMZS, feZ, fyZ, fFBD, fFZD, fMBD, fMZD) "
+         "(meZ, myZ, mFBD, mFZD, mMBD, mMZD) (feB, fyB, fFBS, fFZS, fMBS, fMZS) "
+         "(mF, fF, mFeB, mFyB, mMeB, mMyB, fFeB, fFyB, fMeB, fMyB) "
+         "(mM, fM, mFeZ, mFyZ, mMeZ, mMyZ, fFeZ, fFyZ, fMeZ, fMyZ)"]
     ]
 
     # all patterns you want to look up have to be added here with name and lists of parameters
@@ -227,6 +277,17 @@ def main(args):
                   ["mS", "fS"],
                   ["mD", "fD"],
                   )
+    PatternFinder("siblings in four groups young/old - male/female",
+                  ["meZ", "feZ"], ["meB", "feB"],
+                  ["myB", "fyB"], ["myZ", "feZ"],
+                  )
+    PatternFinder("Hawaiian Kinship System",
+                  ["meB", "myB", "mFBS", "mFZS", "mMBS", "mMZS", "feZ", "fyZ", "fFBD", "fFZD", "fMBD", "fMZD"],
+                  ["meZ", "myZ", "mFBD", "mFZD", "mMBD", "mMZD"],
+                  ["feB", "fyB", "fFBS", "fFZS", "fMBS", "fMZS"],
+                  ["mF", "fF", "mFeB", "mFyB", "mMeB", "mMyB", "fFeB", "fFyB", "fMeB", "fMyB"],
+                  ["mM", "fM", "mFeZ", "mFyZ", "mMeZ", "mMyZ", "fFeZ", "fFyZ", "fMeZ", "fMyZ"],
+                  )
 
     for sPattern in pattern_list:  # Patterns are added to data
         data.add(models.Pattern,
@@ -234,6 +295,7 @@ def main(args):
                  id=sPattern[0],
                  name=sPattern[1],
                  description=sPattern[2],
+                 notation=sPattern[3],
                  languages=[],
                  )
 
@@ -267,4 +329,4 @@ def prime_cache(args):
 
 if __name__ == '__main__':
     initializedb(create=main, prime_cache=prime_cache)
-    sys.exit(0)
+sys.exit(0)
