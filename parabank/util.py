@@ -449,7 +449,6 @@ def language_detail_html(context=None, request=None, **kw):
             )
 
     if param_word['mFBeS'] != "#": # and param_word['mFBeS'] != param_word['mFByS']:
-        print "yes"
         paradigm_tables['cousins'] = HTML.table(
             HTML.thead(
                 HTML.th("", style="height:26px; font-weight:"),
