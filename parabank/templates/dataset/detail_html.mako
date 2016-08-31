@@ -1,9 +1,10 @@
 <%inherit file="../home_comp.mako"/>
+<%namespace name="util" file="../util.mako"/>
 
 <%def name="sidebar()">
-    <div class="well">
-        <h3>Sidebar</h3>
+    <img src="${request.static_url('parabank:static/glottobank_all.jpg')}"/>
 
+    <div class="well">
         <p>
             Parabank is led by Nick Evans, Simon Greenhill, Wolfgang Barth and Kyla Quinn, all based at
             the Australian Research Council Centre of Excellence for the Dynamics of Language

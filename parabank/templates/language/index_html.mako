@@ -5,9 +5,6 @@
 
 <h2>${_('Languages')}</h2>
 
-% if map_ or request.map:
-${(map_ or request.map).render()}
-
-% endif
+${request.map.render()}
 
 ${ctx.render()}
