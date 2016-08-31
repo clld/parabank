@@ -2,12 +2,13 @@ from setuptools import setup, find_packages
 
 
 requires = [
-    'clldmpg>=1.1.0',
+    'clld>=3.0.2',
+    'clldmpg>=2.0.0',
 ]
 
 tests_require = [
     'WebTest >= 1.3.1',  # py3 compat
-    'mock==1.0.0',
+    'mock',
 ]
 
 

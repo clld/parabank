@@ -1,14 +1,15 @@
+# coding: utf8
+from __future__ import unicode_literals, print_function, division
+
 from clld.web import datatables
-from clld.web.datatables.base import Col, LinkCol, DetailsRowLinkCol, IdCol, LinkToMapCol, DataTable
-from clld.web.datatables.value import Values
+from clld.web.datatables.base import Col, LinkCol, DataTable
 from clld.web.datatables.parameter import Parameters
-from clld.web import datatables
-from parabank.models import Syncretism, Pattern, Word, ParabankParameter, Paradigm, ParabankValueSet, ParabankLanguage
-#from clld.db.models.common import Language
+from clld.web.datatables.language import Languages
 from clld.web.util.htmllib import HTML
 from clld.web.util.helpers import link
-from clld.web.datatables.language import Languages
-from clld.db.meta import DBSession
+from clld.db.models.common import Parameter, Language
+
+from parabank.models import Syncretism, Pattern, Word, Paradigm, ParabankValueSet
 
 
 class Words(DataTable):
@@ -17,115 +18,96 @@ class Words(DataTable):
         return [
             Col(self, 'pk', model_col=Word.pk),
             Col(self, 'id', model_col=Word.id),
-            Col(self, 'word', model_col=Word.word_name),
-            Col(self, 'IPA', model_col=Word.word_ipa),
-            #Col(self, 'description', model_col=Word.word_description),
+            Col(self, 'word', model_col=Word.name),
+            Col(self, 'IPA', model_col=Word.ipa),
             Col(self, 'valueset', model_col=Word.valueset_pk),
             Col(self, 'parameter', model_col=ParabankValueSet.parameter_pk),
             Col(self, 'Language'),
-            #Col(self, 'Paradigm')
             Col(self, 'Syncretism')
+        ]
 
-            ]
+
+def list_of_links(req, items, container=HTML.ul, item=HTML.li, link_attrs=None):
+    link_attrs = link_attrs or {}
+    return container(
+        *[item(link(req, i, **link_attrs)) for i in items], class_="unstyled")
+
 
 class LanguageInCol(Col):
     def format(self, item):
-        return HTML.ul(
-            *[HTML.li(link(self.dt.req, language)) for language in item.languages],
-            class_="unstyled")
+        return list_of_links(self.dt.req, item.languages)
+
 
 class ParameterInCol(Col):
     def format(self, item):
-        return HTML.p(
-            *[link(self.dt.req, parameter, style_="padding-left:10px") for parameter in item.parameters],
-            class_="unstyled")
+        return list_of_links(
+            self.dt.req,
+            item.parameters,
+            container=HTML.p,
+            item=HTML.span,
+            link_attrs=dict(style_="padding-left:10px"))
+
 
 class LanguageUnorderedInCol(Col):
     def format(self, item):
         return HTML.p(
-            *[link(self.dt.req, language, style_="padding-left:10px") + "," for language in item.languages],
+            *[link(self.dt.req, language, style_="padding-left:10px") + ","
+              for language in item.languages],
             class_="unstyled")
 
 
 class Syncretisms(DataTable):
-    # Lists of syncretisms
     def col_defs(self):
         return [
-            #LinkCol(self, 'pk', model_col=Syncretism.pk),
-            #LinkCol(self, 'id', model_col=Syncretism.id),
             LinkCol(self, 'name', model_col=Syncretism.name),
             Col(self, 'description', model_col=Syncretism.description),
             Col(self, 'notation', model_col=Syncretism.notation),
             LanguageUnorderedInCol(self, 'language', bSearchable=False, bSortable=False),
-
-            ]
+        ]
 
 
 class Patterns(DataTable):
-
-    # Lists of patterns
     def col_defs(self):
-
         return [
-            # DetailsRowLinkCol(self, 'd'),
-            #Col(self, 'pk', model_col=Pattern.pk),
-            #Col(self, 'id', model_col=Pattern.id),
             LinkCol(self, 'name', model_col=Pattern.name),
             Col(self, 'description', model_col=Pattern.description),
             Col(self, 'notation', model_col=Syncretism.notation),
             LanguageUnorderedInCol(self, 'language', bSearchable=False, bSortable=False),
-            ]
+        ]
 
 
 class Paradigms(DataTable):
-    # list of paradigms
     def col_defs(self):
         return [
-            #Col(self, 'pk', model_col=Paradigm.pk),
             Col(self, 'name', model_col=Paradigm.name),
             Col(self, 'description', model_col=Paradigm.description),
-            #Col(self, 'languages', model_col=Paradigm.languages),
             ParameterInCol(self, 'parameters', bSearchable=False, bSortable=False)
-            ]
+        ]
 
 
 class ParameterTable(Parameters):
     def col_defs(self):
         return [
-            #Col(self, 'id', model_col=ParabankParameter.id),
-            #Col(self, 'pk', model_col=ParabankParameter.pk),
-            LinkCol(self, 'Name', model_col=ParabankParameter.name),
-            Col(self, 'Description', model_col=ParabankParameter.description)
-            ]
+            LinkCol(self, 'name'),
+            Col(self, 'description')
+        ]
+
 
 class SyncretismInCol(Col):
     def format(self, item):
-        return HTML.ul(
-            *[HTML.li(link(self.dt.req, syncretism)) for syncretism in item.syncretisms],
-            class_="unstyled")
+        return list_of_links(self.dt.req, item.syncretisms)
+
 
 class PatternInCol(Col):
     def format(self, item):
-        return HTML.ul(
-            *[HTML.li(link(self.dt.req, pattern)) for pattern in item.patterns],
-            class_="unstyled")
+        return list_of_links(self.dt.req, item.patterns)
 
 
 class ParabankLanguages(Languages):
-
-    def base_query(self, query):
-        # if self.pattern:
-        # joined table language and pattern
-        # filter self.pattern.languages
-        return query
-
     def col_defs(self):
-
         return [
             Col(self, 'id'),
             LinkCol(self, 'name'),
-            #Col(self, 'latitude'),
-            #Col(self, 'longitude'),
             Col(self, 'contribution'),
             SyncretismInCol(self, 'syncretism', bSearchable=False, bSortable=False),
             PatternInCol(self, 'pattern', bSearchable=False, bSortable=False),
@@ -133,31 +115,30 @@ class ParabankLanguages(Languages):
 
 
 class Values(datatables.Values):
-
     def col_defs(self):
-
         if self.language:
             return [
-                #Col(self, 'id'),
                 LinkCol(self, 'name'),
-                Col(self, 'ipa', model_col=Word.word_ipa),
-                Col(self, 'alternative', model_col=Word.word_alternative),
-                LinkCol(self,
-                        'parameter',
-                        sTitle=self.req.translate('Parameter'),
-                        model_col=ParabankParameter.name,
-                        get_object=lambda i: i.valueset.parameter),
-                Col(self, 'comment', model_col=Word.word_comment),
+                Col(self, 'ipa', model_col=Word.ipa),
+                Col(self, 'alternative', model_col=Word.alternative),
+                LinkCol(
+                    self,
+                    'parameter',
+                    sTitle=self.req.translate('Parameter'),
+                    model_col=Parameter.name,
+                    get_object=lambda i: i.valueset.parameter),
+                Col(self, 'comment', model_col=Word.comment),
             ]
         if self.parameter:
             return [
                 Col(self, 'id'),
                 LinkCol(self, 'name'),
-                Col(self, 'ipa', model_col=Word.word_ipa),
-                LinkCol(self,
-                        'language',
-                        model_col=ParabankLanguage.name,
-                        get_object=lambda i: i.valueset.language),
+                Col(self, 'ipa', model_col=Word.ipa),
+                LinkCol(
+                    self,
+                    'language',
+                    model_col=Language.name,
+                    get_object=lambda i: i.valueset.language),
             ]
 
 
@@ -169,5 +150,3 @@ def includeme(config):
     config.register_datatable('parameters', ParameterTable)
     config.register_datatable('languages', ParabankLanguages)
     config.register_datatable('values', Values)
-
-

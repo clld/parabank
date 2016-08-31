@@ -26,7 +26,7 @@ div.parabox {
 
 <h2>${_('Language:')} ${ctx.name}</h2>
 
-<h5>${ctx.comment}</h5>
+<h5>${ctx.description}</h5>
 <br>
 
 <div class="tabbable">

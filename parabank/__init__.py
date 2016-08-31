@@ -1,9 +1,12 @@
+# coding: utf8
+from __future__ import unicode_literals, print_function, division
+
 from pyramid.config import Configurator
 
 # we must make sure custom models are known at database initialization!
 from parabank import models
 
-from parabank.models import Syncretism, Pattern, Paradigm, Word, ParabankLanguage
+from parabank.models import Syncretism, Pattern, Paradigm, Word
 from parabank.interfaces import ISyncretism, IPattern, IParadigm
 from clld import interfaces as clldInt
 
@@ -16,6 +19,6 @@ def main(global_config, **settings):
     config.register_resource('syncretism', Syncretism, ISyncretism, with_index=True)
     config.register_resource('pattern', Pattern, IPattern, with_index=True)
     config.register_resource('paradigm', Paradigm, IParadigm, with_index=True)
-    config.register_resource('word', Word, clldInt.IValue, with_index=True)
+    #config.register_resource('word', Word, clldInt.IValue, with_index=True)
 
     return config.make_wsgi_app()

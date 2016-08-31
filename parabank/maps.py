@@ -1,8 +1,10 @@
+# coding: utf8
+from __future__ import unicode_literals, print_function, division
+
 from clld.web.maps import Map, Layer, GeoJson
 
 
 class SyncretismMap(Map):
-
     def get_layers(self):
         for de in self.ctx.languages:
             yield Layer(
@@ -12,7 +14,6 @@ class SyncretismMap(Map):
 
 
 class PatternMap(Map):
-
     def get_layers(self):
         for de in self.ctx.languages:
             yield Layer(
