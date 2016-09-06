@@ -9,7 +9,7 @@
             Parabank is led by Nick Evans, Simon Greenhill, Wolfgang Barth and Kyla Quinn, all based at
             the Australian Research Council Centre of Excellence for the Dynamics of Language
             (CoEDL), at the Australian National University (ANU), but welcomes the participation
-            of any interested researcher. Funding will primarily come from the CoEDL.
+            of any interested researcher. Funding will primarily come from CoEDL.
         </p>
     </div>
 </%def>
