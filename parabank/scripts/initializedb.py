@@ -96,7 +96,7 @@ def main(args):
             if item['parameter'] in lang_dict[item['glottocode']]:
                 if lang_dict[item['glottocode']][item['parameter']] != item['word']:
                     print(fname, item['glottocode'], item['parameter'])
-                    print(lang_dict[item['glottocode']][item['parameter']], item['word'])
+                    #print(lang_dict[item['glottocode']][item['parameter']], item['word'])
                     continue
                 continue
             lang_dict[item['glottocode']][item['parameter']] = item['word']
@@ -126,7 +126,11 @@ def main(args):
                 valueset=vs))
 
     for i, (name, desc, params) in enumerate([
-        ("grandparents", "all grandparents have the same address term", "mFF mMF fFF fMF"),
+        ("patrichild", "male speaker's children and children of brothers", "mS mD meBS meBD myBS myBD "
+                                                                               "feBS feBD fyBS fyBD"),
+        ("matrichild", "female speaker's children and children of sisters", "fS fD feZS feZD fyZS fyZD "
+                                                                                "meZS meZD myZS myZD"),
+        ("grandfathers", "all grandparents have the same address term", "mFF mMF fFF fMF"),
         ("sisters", "all sisters have the same address term", "meZ myZ feZ fyZ"),
         ("brothers", "all brothers have the same address term", "meB myB feB fyB"),
         ("father-in-law", "all fathers-in-law have the same address term", "fHF mWF"),
@@ -178,8 +182,8 @@ def main(args):
 
     for i, (name, desc, params) in enumerate([
         [
-            "all terms",
-            "all kinship terms",
+            "all male brothers",
+            "all kinship terms for male speaker's brother",
             ["meB", "myB"]],
         [
             "siblings",
