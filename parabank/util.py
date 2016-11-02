@@ -58,7 +58,7 @@ def language_detail_html(context=None, request=None, **kw):
         'levenshtein_siblings': HTML.table(
             thead("F", "eB", "yB", "me (m)", "me (f)", "yZ", "eZ", "M"),
             HTML.tbody(
-                tr('my father (F)', 'mS', 'mS', 'mS', 'mD', 'mD', 'mD', 'mW'),
+                tr('my father (F)', '', 'mS', 'mS', 'mS', 'mD', 'mD', 'mD', 'mW'),
                 tr('eB', 'mF', '', 'myB', 'myB', 'myZ', 'myZ', '', 'mM'),
                 tr('yB', 'mF', 'meB', '', 'meB', 'meZ', '', 'meZ', 'mM'),
                 tr('me (male)', 'mF', 'meB', 'myB', '', '', 'myZ', 'meZ', 'mM'),
