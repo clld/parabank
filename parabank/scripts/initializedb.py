@@ -82,6 +82,7 @@ def main(args):
     contrib = common.Contribution(id='contrib', name='the contribution')
 
     for langu in reader(DATA_DIR.joinpath('data_basics', 'all_languages.txt'), delimiter=';', dicts=True):
+        #print(langu)
         data.add(common.Language,
                  langu['glotto'],
                  id=langu['glotto'],
@@ -100,6 +101,7 @@ def main(args):
                     continue
                 continue
             lang_dict[item['glottocode']][item['parameter']] = item['word']
+            print(fname)
             lang = data['Language'][item['glottocode']]
             param = data['Parameter'].get(item['parameter'])
             if not param:
