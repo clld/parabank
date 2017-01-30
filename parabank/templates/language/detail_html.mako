@@ -162,8 +162,10 @@ input[type=text] {
 <br>
 <div class="tabbable">
     <ul class="nav nav-tabs">
-        <li class="active"><a href="#primary" data-toggle="tab">Contrast Colors</a></li>
-        <li><a href="#secondary" data-toggle="tab">Addressing the Family</a></li>
+        <li class="active"><a href="#primary" data-toggle="tab">Kinship</a></li>
+        <!-- <li><a href="#secondary" data-toggle="tab">Addressing the Family</a></li> -->
+        <li><a href="#pronouns" data-toggle="tab">Pronouns</a></li>
+        <li><a href="#verbagreement" data-toggle="tab">Verb Agreement</a></li>
     </ul>
     <div class="tab-content" style="overflow: visible;">
         <div id="primary" class="tab-pane active">
@@ -210,6 +212,24 @@ input[type=text] {
                 ${levenshtein_siblings}
                 </div>
         </div>
+        <div id="pronouns" class="tab-pane">
+            <div class="parabox">
+                <h4>Pronouns</h4>
+                ${pronouns}
+                </div>
+        </div>
+        <div id="verbagreement" class="tab-pane">
+            <div class="parabox">
+                <h4>Verb Agreement</h4>
+                ${verb_agreement}
+                </div>
+            <br>
+
+            <div class="parabox">
+                <h4>Verb Agreement</h4>
+                ${verb_agreement2}
+                </div>
+        </div>
     </div>
 </div>
 
@@ -221,9 +241,15 @@ ${request.get_datatable('values', h.models.Value, language=ctx).render()}
         <h4>Editor</h4>
         <input type="button" value="Reset" onClick="reloadPage()">
         <input type="button" value="Max. contrast" onClick="rainbow()"><br>
+
         <hr>
         <input type="button" value="Cut first letter" onClick="removeFirstLetter()">
         <input type="button" value="Cut last letter" onClick="removeLastLetter()"><br>
+        <input type="button" value="Cut first word" onClick="removeFirstWord()">
+        <input type="button" value="Cut last word" onClick="removeLastWord()"><br>
+
+        <input type="button" value="abc only" onClick="onlyABC()">
+        <input type="button" value="(blank)" onClick=""><br>
         <hr>
         <input type="text" id="substring" placeholder="ab-, -bc-, -de"><br>
         <input type="button" value="Remove Substring" onClick="removeSubstring()"><br>
@@ -319,11 +345,15 @@ ${request.get_datatable('values', h.models.Value, language=ctx).render()}
 
 <script>
 // all the lables which should not be colored in:
-var lableCells = ['eB', 'yB', 'eZ', 'yZ', 'my father (F)', 'my mother (M)', 'me (male)', 'me (female)', 'male', 'female',
+var lableCells = ['eB', 'yB', 'eZ', 'yZ', 'father (F)', 'mother (M)', 'ego (male)', 'ego (female)', 'male', 'female',
                   'male speaker (parent is younger sibling)', 'male speaker (parent is older sibling)',
                   'female speaker (parent is younger sibling)', 'female speaker (parent is older sibling)',
                   'male speaker (younger than cousin)', 'female speaker (younger than cousin)',
-                  'male speaker (older than cousin)', 'female speaker (older than cousin)'];
+                  'male speaker (older than cousin)', 'female speaker (older than cousin)',
+                  '1st (excl) Person Singular', '1st (excl) Person Dual','1st (excl) Person Plural',
+                  '1st (incl) Person Dual', '1st (incl) Person Plural', '2nd Person Singular',
+                  '2nd Person Dual', '2nd Person Plural','3rd Person Singular Gender 1',
+                  '3rd Person Singular Gender 2', '3rd Person Dual','3rd Person Plural',];
 
 function reloadPage() {
     location.reload();
@@ -486,7 +516,7 @@ function longestCommonSubstring(string1, string2){
 			}
 		}
 	}
-    longestCommonSubstring = 15 * longestCommonSubstring
+    longestCommonSubstring = 15 * longestCommonSubstring;
     if (longestCommonSubstring > 99) {longestCommonSubstring = 99}
     if (longestCommonSubstring < 1) {longestCommonSubstring = 1}
 	return increaseBrightness('#FF1418', 100 - longestCommonSubstring);
@@ -504,6 +534,19 @@ function getTableCells() {
         }
     }
     return cells;
+}
+
+function getAllSpans() {
+    var cells = getTableCells();
+    var allSpans = [];
+    for (var h = 0, len3 = cells.length; h < len3; h++)
+    {
+        var spans = cells[h].getElementsByTagName("span");
+        for (var k = 0, len1 = spans.length; k < len1; k++) {
+            allSpans.push(spans[k]);
+        }
+    }
+    return allSpans;
 }
 
 function getRadioButton(theButtonGroup) {
@@ -556,7 +599,7 @@ function findColorList(clickedValue, currentCell) {
 
     var beginningValue = getRadioButton('beginning');      // radio buttons for cutting beginning letters
     var endingValue = - getRadioButton('ending');            // radio buttons for cutting ending letters ( "-" as value from back)
-    var ignoreVowels = getCheckboxes("vowels")             // checkbox to remove all vowels from calculation
+    var ignoreVowels = getCheckboxes("vowels");             // checkbox to remove all vowels from calculation
     var cellColorList = [];                                // populated with a hexColor value for each term in cell
     var spans = currentCell.getElementsByTagName('span');  // list of individual spans
 
@@ -577,7 +620,7 @@ function findColorList(clickedValue, currentCell) {
         if (ignoreVowels == 'yes') {
             oldValue = removeVowels(oldValue);
             shortClickValue = removeVowels(shortClickValue)
-            };
+            }
 
         if (oldValue) {
             cellColorList.push(compareMethod(shortClickValue, oldValue));
@@ -585,7 +628,7 @@ function findColorList(clickedValue, currentCell) {
         } else {cellColorList.push('#808080')}  // no value in span
     }
     colorTheCells(cellColorList, currentCell);
-};
+}
 
 function compareMethod(shortClickValue, oldValue) {
 
@@ -680,12 +723,12 @@ function removeSubstring() {
     var subRemove = document.getElementById('substring').value;
     var subClean = subRemove.replaceAll("-", "");
     var subLength = subClean.length;
-    var spans = document.getElementsByTagName('span');
+    var spans = getAllSpans();
 
     for (var l = 0, len1 = spans.length; l < len1; l++) {
 
         var raw = spans[l].innerText;
-        var cleanShort = raw.trim().slice(1)
+        var cleanShort = raw.trim().slice(1);
 
         if (subRemove.startsWith("-")) {
             if (subRemove.endsWith("-")) {
@@ -701,41 +744,72 @@ function removeSubstring() {
                     spans[l].innerText = raw.slice(0, - (subLength))
                 }
             }
-        }
-        else if (subRemove.endsWith("-")) {
+
+        } else if (subRemove.endsWith("-")) {
             if (raw.trim().startsWith(subClean)) {
                 spans[l].innerText = raw.replace(subClean, "");
             }
-        }
+
+        } else {
+            spans[l].innerText = raw.replace(subClean, "");
+            }
     }
 }
 
 function removeFirstLetter() {
+    var spans = getAllSpans();
+    for (var l = 0, len1 = spans.length; l < len1; l++) {
 
-    var cells = getTableCells();
-    for (var h = 0, len3 = cells.length; h < len3; h++)
-    {
-        var spans = cells[h].getElementsByTagName("span")
-        for (var l = 0, len1 = spans.length; l < len1; l++) {
+        if (spans[l].innerText[0] == " ") {
+            spans[l].innerText = " " + spans[l].innerText.substr(2)
+        } else {
+            spans[l].innerText = spans[l].innerText.substr(1);
+        }
+    }
+}
 
-            if (spans[l].innerText[0] == " ") {
-                spans[l].innerText = " " + spans[l].innerText.substr(2)
-            } else {
-                spans[l].innerText = spans[l].innerText.substr(1);
+function removeFirstWord() {
+    var spans = getAllSpans();
+    for (var k = 0, len1 = spans.length; k < len1; k++) {
+
+        var values = spans[k].innerText.trim().split(' ');
+        if (values.length > 1) {
+            var valueOut = [];
+            for (var m = 1, len2 = values.length; m < len2; m++) {
+                valueOut.push(values[m]);
             }
+            spans[k].innerText = ' ' + valueOut.join(' ').trim();
+        }
+    }
+}
+
+function removeLastWord() {
+    var spans = getAllSpans();
+    for (var k = 0, len1 = spans.length; k < len1; k++) {
+
+        var values = spans[k].innerText.trim().split(' ');
+        if (values.length > 1) {
+            var valueOut = [];
+            for (var m = 0, len2 = values.length; m < len2 - 1; m++) {
+                valueOut.push(values[m]);
+            }
+            spans[k].innerText = ' ' + valueOut.join(' ').trim();
         }
     }
 }
 
 function removeLastLetter() {
+    var spans = getAllSpans();
+    for (var l = 0, len1 = spans.length; l < len1; l++) {
+        spans[l].innerText = spans[l].innerText.slice(0, -1);
+    }
+}
 
-    var cells = getTableCells();
-    for (var h = 0, len3 = cells.length; h < len3; h++)
-    {
-        var spans = cells[h].getElementsByTagName("span")
-        for (var l = 0, len1 = spans.length; l < len1; l++) {
-            spans[l].innerText = spans[l].innerText.slice(0, -1);
-        }
+function onlyABC(){
+    var spans = getAllSpans();
+    for (var l = 0, len1 = spans.length; l < len1; l++) {
+        var patt1 = /[a-z ]+/g;
+        spans[l].innerText = spans[l].innerText.replace(/[1234567890.,\/#!$%\^&\*;:{}=\-_`~()]/g, "");
     }
 }
 
@@ -787,12 +861,12 @@ function spanCells() {
             for (var n = 0, len2 = textByWord.length; n < len2; n++) {
 
                 textByWord[n] = "<span onclick='levenshteinSelect(this.innerText)'>" + textByWord[n] + "</span>";
-            };
+            }
         cells[k].innerHTML = textByWord.join();
-        };
-    };
+        }
+    }
     rainbow()
-};
+}
 
 spanCells()
 

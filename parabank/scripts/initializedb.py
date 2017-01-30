@@ -45,6 +45,7 @@ def has_pattern(words, *syncretisms):
     :return: True if the pattern is found, else False
     """
     if all(param in words for param in chain(*syncretisms)):
+
         # compare always the first parameter of a syncretism with the first of the other
         # syncretisms. they have to be different in order to be a pattern.
         if len(set(words[s[0]] for s in syncretisms)) == len(syncretisms):
@@ -101,7 +102,8 @@ def main(args):
                     continue
                 continue
             lang_dict[item['glottocode']][item['parameter']] = item['word']
-            print(fname)
+            #print(fname)
+            #print(fname, item['glottocode'], item['parameter'])
             lang = data['Language'][item['glottocode']]
             param = data['Parameter'].get(item['parameter'])
             if not param:
@@ -150,28 +152,118 @@ def main(args):
 
     for i, (name, desc, partition) in enumerate([
         [
-            "gender division in siblings",
-            "Siblings are in two groups depending on the gender",
-            "(meZ, myZ, feZ, fyZ) (meB, myB, feB, fyB)"],
-        [
-            "age division in siblings",
-            "Siblings are in two groups depending on the relative age to the speaker",
-            "(meB, meZ, feB, feZ) (myB, myZ, fyB, fyZ)"],
-        [
             "sons vs. daughters",
             "Children are in two groups depending on their gender",
             "(mS, fS) (mD, fD)"],
         [
-            "siblings in four groups young/old - male/female",
-            "Siblings are in four groups of older/younger, male/female distinction",
-            "(meZ, feZ) (meB, feB) (myB, myB) (fyB fyB)"],
+            "parents by gender and one term for all siblings of parents",
+            "simple",
+            "(mF, fF) "
+            "(mM, fM) "
+            "(mFeB, mFyB, mFeZ, mFyZ, mMeB, mMyB, mMeZ, mMyZ, mFeB, fFyB, fFeZ, fFyZ, fMeB, fMyB, fMeZ, fMyZ)"],
         [
             "Hawaiian Kinship System",
             "Differences are distinguished by generation and by gender",
             "(meB, myB, mFBS, mFZS, mMBS, mMZS, feZ, fyZ, fFBD, fFZD, fMBD, fMZD) "
             "(meZ, myZ, mFBD, mFZD, mMBD, mMZD) (feB, fyB, fFBS, fFZS, fMBS, fMZS) "
             "(mF, fF, mFeB, mFyB, mMeB, mMyB, fFeB, fFyB, fMeB, fMyB) "
-            "(mM, fM, mFeZ, mFyZ, mMeZ, mMyZ, fFeZ, fFyZ, fMeZ, fMyZ)"]
+            "(mM, fM, mFeZ, mFyZ, mMeZ, mMyZ, fFeZ, fFyZ, fMeZ, fMyZ)"],
+        [
+            "#3 siblings: gender division",
+            "Siblings are in two groups depending on the gender",
+            "(meZ, myZ, feZ, fyZ) (meB, myB, feB, fyB)"],
+        [
+            "#5 siblings: age division",
+            "Siblings are in two groups depending on the relative age to the speaker",
+            "(meB, meZ, feB, feZ) (myB, myZ, fyB, fyZ)"],
+        [
+            "#4 siblings: male speaker / female speaker",
+            "Siblings are in two groups depending on the gender of speaker",
+            "(meB, myB, meZ, myZ) (feB, fyB, feZ, fyZ)"],
+        [
+            "#2 siblings: gender division plus meB and fyZ",
+            "Siblings are in two groups: male/female, where male elder brother and female younger sister have own term",
+            "(meB) (myB, feB, fyB) (meZ, myZ, feZ) (fyZ)"],
+        [
+            "#1 siblings: elder brother / younger brother / elder sister / younger sister",
+            "Siblings are in four groups distinguished by age and gender",
+            "(meB, feB) (myB, fyB) (meZ, feZ) (myZ, fyZ)"],
+        [
+            "#6 siblings: four groups: gender of speaker, gender of sibling",
+            "Siblings are in four groups distinguished by gender of speaker and gender of sibling",
+            "(meB, myB) (feB, fyB) (meZ, myZ) (feZ, fyZ)"],
+        [
+            "#7 siblings: eight terms",
+            "Each sibling is addressed differently",
+            "(meB) (myB) (feB) (fyB) (meZ) (myZ) (feZ) (fyZ)"],
+        [
+            "#8 siblings: gender of sibling plus distinction of male/female speaker for brothers",
+            "distinction by gender and brother distinction by gender of speaker",
+            "(meB, myB) (feB, fyB) (meZ, myZ, feZ, fyZ)"],
+        [
+            "#9 siblings: gender of sibling plus distinction of male/female speaker for sisters",
+            "distinction by gender and sister distinction by gender of speaker",
+            "(meB, myB, feB, fyB) (meZ, myZ) (feZ, fyZ)"],
+        [
+            "#10 siblings: gender distinction plus same gender by age",
+            "distinction by gender and same gender siblings are distinguished by age",
+            "(meB) (myB, fyZ) (feB, fyB) (meZ, myZ) (feZ)"],
+        [
+            "#11 siblings: age distinction plus older siblings by gender",
+            "distinction by gender and same gender siblings are distinguished by age",
+            "(meB, feB) (myB, fyB, myZ, fyZ) (meZ, feZ)"],
+        [
+            "#12 siblings: gender division plus age division for brothers",
+            "gender division plus age division for brothers",
+            "(meB, feB) (myB, fyB) (myZ, fyZ, meZ, feZ)"],
+        [
+            "#13 siblings: age division plus sex of speaker division for older siblings",
+            "gender division plus age division for brothers",
+            "(meB, meB) (feB, feZ) (myB, myZ, fyB, fyZ)"],
+        [
+            "#14 siblings: cross gender distinction plus age distinction in same gender",
+            "cross gender plus age in same gender",
+            "(meB, feZ) (myB, fyZ) (feB, fyB, meZ, myZ)"],
+        [
+            "#15 siblings: one term for same gender sibling, cross gender divided in male and female",
+            "one term for same gender sibling cross gender divided in male and female",
+            "(meB, myB, feZ, fyZ) (feB, fyB) (meZ, myZ)"],
+        [
+            "#16 siblings: one term for cross gender sibling same gender divided in male and female",
+            "one term for cross gender sibling same gender divided in male and female",
+            "(meB, myB) (feZ, fyZ) (feB, fyB, meZ, myZ)"],
+        [
+            "#17 siblings", "complex", "(meB) (myB, fyB) (feZ) (fyZ) (feB) (meZ) (myZ)"],
+        [
+            "#18 siblings", "complex", "(meB) (myB, fyB, fyZ) (feZ) (feB) (meZ) (myZ)"],
+        [
+            "#19 siblings", "complex", "(meB) (myB, fyB, feB) (feZ, fyZ) (meZ, myZ)"],
+        [
+            "#20 siblings", "complex", "(meB, feB) (myB, fyB, myZ, fyZ) (meZ) (feZ)"],
+        [
+            "#21 siblings: age and gender distinction plus younger sister by sex of speaker",
+            "age and gender distinction plus younger sister by sex of speaker",
+            "(meB, feB) (myB, fyB) (meZ, feZ) (myZ) (fyZ)"],
+        [
+            "#22 siblings", "complex", "(meB, feB) (myB) (fyB) (meZ, feZ) (myZ) (fyZ)"],
+        [
+            "#23 siblings", "complex", "(meB) (feB) (myB) (fyB) (meZ) (feZ) (myZ, fyZ)"],
+        [
+            "#24 siblings: brothers and age distinction in sisters",
+            "brothers and age distinction in sisters",
+            "(meB, feB, myB, fyB) (meZ, feZ) (myZ, fyZ)"],
+        [
+            "#25 siblings: one term for all",
+            "one term for all siblings",
+            "(meB, feB, myB, fyB, meZ, feZ, myZ, fyZ)"],
+        [
+            "#26 siblings: cross vs. same sex sibling",
+            "two terms: one for cross one for same sex sibling",
+            "(meB, myB, feZ, fyZ) (meZ, myZ, feB, fyB)"],
+        [
+            "#27 siblings: age distinction plus gender in older siblings plus speaker distinction for older brother",
+            "age and gender plus speaker distinction for older brother",
+            "(meB) (myB, fyB, myZ, fyZ) (feB) (meZ, feZ)"],
     ]):
         pattern = models.Pattern(
             id='%s' % (i + 1,), name=name, description=desc, notation=partition)
@@ -184,13 +276,51 @@ def main(args):
 
     for i, (name, desc, params) in enumerate([
         [
-            "all male brothers",
-            "all kinship terms for male speaker's brother",
-            ["meB", "myB"]],
+            "parents, aunts & uncles",
+            "all kinship terms for father, mother and their siblings",
+            ["mF", "mM", "fF", "fM",
+             "mFeB", "mFyB", "mFeZ", "mFyZ", "mMeB", "mMyB", "mMeZ", "mMyZ",
+             "fFeB", "fFyB", "fFeZ", "fFyZ", "fMeB", "fMyB", "fMeZ", "fMyZ"]],
         [
             "siblings",
             "all brothers and sisters",
             ["meB", "myB", "meZ", "myZ", "feB", "fyB", "feZ", "fyZ"]],
+        [
+            "cousins - no age distinction",
+            "all children of parent's siblings",
+            ["mFBS", "mFBD", "mFZS", "mFZD", "mMBS", "mMBD", "mMZS", "mMZD",
+             "fFBS", "fFBD", "fFZS", "fFZD", "fMBS", "fMBD", "fMZS", "fMZD"]],
+        [
+            "cousins - age distinction depends on relative age between ego and cousin",
+            "all children of parent's siblings by relative age between ego and cousin",
+            ["mFBeS", "mFBeD", "mFZeS", "mFZeD", "mMBeS", "mMBeD", "mMZeS", "mMZeD",
+             "mFByS", "mFByD", "mFZyS", "mFZyD", "mMByS", "mMByD", "mMZyS", "mMZyD",
+             "fFBeS", "fFBeD", "fFZeS", "fFZeD", "fMBeS", "fMBeD", "fMZeS", "fMZeD",
+             "fFByS", "fFByD", "fFZyS", "fFZyD", "fMByS", "fMByD", "fMZyS", "fMZyD"]],
+        [
+            "cousins - age distinction depends on relative age between parent of ego and parent of cousin",
+            "all children of parent's siblings by relative age of parents",
+            ["mFeBS", "mFeBD", "mFeZS", "mFeZD", "mMeBS", "mMeBD", "mMeZS", "mMeZD",
+             "mFyBS", "mFyBD", "mFyZS", "mFyZD", "mMyBS", "mMyBD", "mMyZS", "mMyZD",
+             "fFeBS", "fFeBD", "fFeZS", "fFeZD", "fMeBS", "fMeBD", "fMeZS", "fMeZD",
+             "fFyBS", "fFyBD", "fFyZS", "fFyZD", "fMyBS", "fMyBD", "fMyZS", "fMyZD"]],
+        [
+            "grandparents & grandchildren",
+            "all direct ancestors of the grandparent generation & all direct "
+            "descendants of the grandchildren generation",
+            ["mFF", "mFM", "mMF", "mMM", "fFF", "fFM", "fMF", "fMM",
+             "mSS", "mSD", "mDS", "mDD", "fSS", "fSD", "fDS", "fDD"]],
+        [
+            "sons & daughters, nieces & nephews",
+            "all children of ego and ego's siblings",
+            ["mS", "mD", "fS", "fD",
+             "meBS", "meBD", "myBS", "myBD", "meZS", "meZD", "myZS", "myZD",
+             "feBS", "feBD", "fyBS", "fyBD", "feZS", "feZD", "fyZS", "fyZD"]],
+        [
+            "In-laws & affines",
+            "relatives through marriage",
+            ["mW", "fH", "fHF", "fHM", "mWF", "mWM",
+             "mSW", "mDH", "fSW", "fDH"]],
     ]):
         paradigm = models.Paradigm(id='%s' % (i + 1,), name=name, description=desc)
         for param in params:

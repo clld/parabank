@@ -58,15 +58,68 @@ def language_detail_html(context=None, request=None, **kw):
         'levenshtein_siblings': HTML.table(
             thead("F", "eB", "yB", "me (m)", "me (f)", "yZ", "eZ", "M"),
             HTML.tbody(
-                tr('my father (F)', '', 'mS', 'mS', 'mS', 'mD', 'mD', 'mD', 'mW'),
+                tr('father (F)', '', 'mS', 'mS', 'mS', 'mD', 'mD', 'mD', 'mW'),
                 tr('eB', 'mF', '', 'myB', 'myB', 'myZ', 'myZ', '', 'mM'),
                 tr('yB', 'mF', 'meB', '', 'meB', 'meZ', '', 'meZ', 'mM'),
-                tr('me (male)', 'mF', 'meB', 'myB', '', '', 'myZ', 'meZ', 'mM'),
-                tr('me (female)', 'mF', 'meB', 'myB', '', '', 'myZ', 'meZ', 'mM'),
+                tr('ego (male)', 'mF', 'meB', 'myB', '', '', 'myZ', 'meZ', 'mM'),
+                tr('ego (female)', 'mF', 'meB', 'myB', '', '', 'myZ', 'meZ', 'mM'),
                 tr('yZ', 'fF', 'feB', '', 'fyB', 'fyZ', '', 'feZ', 'fM'),
                 tr('eZ', 'fF', '', 'fyB', 'fyB', 'fyZ', 'fyZ', '', 'fM'),
-                tr('my mother (M)', 'fH', 'fS', 'fS', 'fS', 'fD', 'fD', 'fD', ''),
+                tr('mother (M)', 'fH', 'fS', 'fS', 'fS', 'fD', 'fD', 'fD', ''),
             )
+        ),
+        'pronouns': HTML.table(
+            thead("Actor", "Subject", "Object", "Possessive"),
+            HTML.tbody(
+                tr('1st (excl) Person Singular', '1exSiAct', '1exSiSub', '1exSiObj', '1exSiPoss'),
+                tr('1st (excl) Person Dual', '1exDuAct', '1exDuSub', '1exDuObj', '1exDuPoss'),
+                tr('1st (excl) Person Plural', '1exPlAct', '1exPlSub', '1exPlObj', '1exPlPoss'),
+                tr('1st (incl) Person Dual', '1inDuAct', '1inDuSub', '1inDuObj', '1inDuPoss'),
+                tr('1st (incl) Person Plural', '1inPlAct', '1inPlSub', '1inPlObj', '1inPlPoss'),
+                tr('2nd Person Singular', '2SiAct', '2SiSub', '2SiObj', '2SiPoss'),
+                tr('2nd Person Dual', '2DuAct', '2DuSub', '2DuObj', '2DuPoss'),
+                tr('2nd Person Plural', '2PlAct', '2PlSub', '2PlObj', '2PlPoss'),
+                tr('3rd Person Singular Gender 1', '3SiG1Act', '3SiG1Sub', '3SiG1Obj', '3SiG1Poss'),
+                tr('3rd Person Singular Gender 2', '3SiG2Act', '3SiG2Sub', '3SiG2Obj', '3SiG2Poss'),
+                tr('3rd Person Dual', '3DuAct', '3DuSub', '3DuObj', '3DuPoss'),
+                tr('3rd Person Plural', '3PlAct', '3PlSub', '3PlObj', '3PlPoss'),
+            )
+        ),
+        'verb_agreement': HTML.table(
+            thead("Present", "Past", "Future", "#"),
+            HTML.tbody(
+                tr('1st (excl) Person Singular', '1exSiActVA', '1exSiSubVA', '1exSiObjVA', '1exSiPossVA'),
+                tr('1st (excl) Person Dual', '1exDuActVA', '1exDuSubVA', '1exDuObjVA', '1exDuPossVA'),
+                tr('1st (excl) Person Plural', '1exPlActVA', '1exPlSubVA', '1exPlObjVA', '1exPlPossVA'),
+                tr('1st (incl) Person Dual', '1inDuActVA', '1inDuSubVA', '1inDuObjVA', '1inDuPossVA'),
+                tr('1st (incl) Person Plural', '1inPlActVA', '1inPlSubVA', '1inPlObjVA', '1inPlPossVA'),
+                tr('2nd Person Singular', '2SiActVA', '2SiSubVA', '2SiObjVA', '2SiPossVA'),
+                tr('2nd Person Dual', '2DuActVA', '2DuSubVA', '2DuObjVA', '2DuPossVA'),
+                tr('2nd Person Plural', '2PlActVA', '2PlSubVA', '2PlObjVA', '2PlPossVA'),
+                tr('3rd Person Singular Gender 1', '3SiG1ActVA', '3SiG1SubVA', '3SiG1ObjVA', '3SiG1PossVA'),
+                tr('3rd Person Singular Gender 2', '3SiG2ActVA', '3SiG2SubVA', '3SiG2ObjVA', '3SiG2PossVA'),
+                tr('3rd Person Dual', '3DuActVA', '3DuSubVA', '3DuObjVA', '3DuPossVA'),
+                tr('3rd Person Plural', '3PlActVA', '3PlSubVA', '3PlObjVA', '3PlPossVA'),
+            ),
+
+        ),
+        'verb_agreement2': HTML.table(
+            thead("Present", "Past", "Future", "#"),
+            HTML.tbody(
+                tr('1st (excl) Person Singular', '1exSiActVA2', '1exSiSubVA2', '1exSiObjVA2', '1exSiPossVA2'),
+                tr('1st (excl) Person Dual', '1exDuActVA2', '1exDuSubVA2', '1exDuObjVA2', '1exDuPossVA2'),
+                tr('1st (excl) Person Plural', '1exPlActVA2', '1exPlSubVA2', '1exPlObjVA2', '1exPlPossVA2'),
+                tr('1st (incl) Person Dual', '1inDuActVA2', '1inDuSubVA2', '1inDuObjVA2', '1inDuPossVA2'),
+                tr('1st (incl) Person Plural', '1inPlActVA2', '1inPlSubVA2', '1inPlObjVA2', '1inPlPossVA2'),
+                tr('2nd Person Singular', '2SiActVA2', '2SiSubVA2', '2SiObjVA2', '2SiPossVA2'),
+                tr('2nd Person Dual', '2DuActVA2', '2DuSubVA2', '2DuObjVA2', '2DuPossVA2'),
+                tr('2nd Person Plural', '2PlActVA2', '2PlSubVA2', '2PlObjVA2', '2PlPossVA2'),
+                tr('3rd Person Singular Gender 1', '3SiG1ActVA2', '3SiG1SubVA2', '3SiG1ObjVA2', '3SiG1PossVA2'),
+                tr('3rd Person Singular Gender 2', '3SiG2ActVA2', '3SiG2SubVA2', '3SiG2ObjVA2', '3SiG2PossVA2'),
+                tr('3rd Person Dual', '3DuActVA2', '3DuSubVA2', '3DuObjVA2', '3DuPossVA2'),
+                tr('3rd Person Plural', '3PlActVA2', '3PlSubVA2', '3PlObjVA2', '3PlPossVA2'),
+            ),
+
         ),
     }
 
