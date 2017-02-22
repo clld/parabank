@@ -131,13 +131,27 @@ def main(args):
 
     for i, (name, desc, params) in enumerate([
         ("patrichild", "male speaker's children and children of brothers", "mS mD meBS meBD myBS myBD "
-                                                                               "feBS feBD fyBS fyBD"),
+                                                                           "feBS feBD fyBS fyBD"),
         ("matrichild", "female speaker's children and children of sisters", "fS fD feZS feZD fyZS fyZD "
-                                                                                "meZS meZD myZS myZD"),
+                                                                            "meZS meZD myZS myZD"),
         ("grandfathers", "all grandparents have the same address term", "mFF mMF fFF fMF"),
-        ("sisters", "all sisters have the same address term", "meZ myZ feZ fyZ"),
-        ("brothers", "all brothers have the same address term", "meB myB feB fyB"),
+        ("#2 siblings: sisters", "all sisters have the same address term", "meZ myZ feZ fyZ"),
+        ("#3 siblings: brothers", "all brothers have the same address term", "meB myB feB fyB"),
         ("father-in-law", "all fathers-in-law have the same address term", "fHF mWF"),
+        ("#1 siblings: older", "one term for all older siblings", "meB feB feB feZ"),
+        ("#4 siblings: younger", "one term for all younger siblings", "myB fyB fyB fyZ"),
+        ("#5 siblings: cross sex", "one term for other sex siblings", "meZ myZ feB fyB"),
+        ("#6 siblings: same sex", "one term for same sex siblings", "meB myB feZ fyZ"),
+        ("#7 siblings", "male ego uses one term for sisters", "meZ myZ"),
+        ("#8 siblings", "male ego uses one term for brothers", "meB myB"),
+        ("#9 siblings", "female ego uses one term for sisters", "feZ fyZ"),
+        ("#10 siblings", "female ego uses one term for brothers", "feB fyB"),
+        ("#11 siblings", "myB feB fyB", "myB feB fyB"),
+        ("#12 siblings", "meZ myZ feZ", "meZ myZ feZ"),
+        ("#13 siblings", "myB fyZ", "myB fyZ"),
+        ("#14 siblings", "feB meZ", "feB meZ"),
+        ("#15 siblings", "myZ fyB", "myZ fyB"),
+        ("#16 siblings", "feZ meB", "feZ meB"),
     ]):
         params = params.split()
         syncretism = models.Syncretism(

@@ -308,7 +308,7 @@ ${request.get_datatable('values', h.models.Value, language=ctx).render()}
                 <input type="radio" name="beginning" value="3">
                 <div class="control__indicator"></div>
             </label>
-            <label class="control control--radio">No Letter is Ignored
+            <label class="control control--radio">No Letter is ignored
                 <input type="radio" name="beginning" value="0" checked="checked">
                 <div class="control__indicator"></div>
             </label>
