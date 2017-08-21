@@ -8,8 +8,10 @@ from clld.web.datatables.language import Languages
 from clld.web.util.htmllib import HTML
 from clld.web.util.helpers import link
 from clld.db.models.common import Parameter, Language
+from clld_glottologfamily_plugin.datatables import FamilyLinkCol
+from clld_glottologfamily_plugin.models import Family
 
-from parabank.models import Syncretism, Pattern, Word, Paradigm, ParabankValueSet
+from parabank.models import Syncretism, Pattern, Word, Paradigm, ParabankValueSet, ParabankLanguage
 
 
 class Words(DataTable):
@@ -104,10 +106,14 @@ class PatternInCol(Col):
 
 
 class ParabankLanguages(Languages):
+    def base_query(self, query):
+        return query.join(ParabankLanguage.family)
+
     def col_defs(self):
         return [
             Col(self, 'id'),
             LinkCol(self, 'name'),
+            FamilyLinkCol(self, 'family', ParabankLanguage),
             Col(self, 'contribution'),
             SyncretismInCol(self, 'syncretism', bSearchable=False, bSortable=False),
             PatternInCol(self, 'pattern', bSearchable=False, bSortable=False),

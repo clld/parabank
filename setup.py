@@ -4,6 +4,8 @@ from setuptools import setup, find_packages
 requires = [
     'clld>=3.2.0',
     'clldmpg>=2.0.0',
+    'pyglottolog',
+    'clld-glottologfamily-plugin',
 ]
 
 tests_require = [

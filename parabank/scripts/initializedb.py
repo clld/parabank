@@ -7,19 +7,19 @@ from collections import defaultdict
 import re
 from itertools import chain
 
-from clldutils.path import Path
+from clldutils.path import Path, as_unicode
 from clldutils.dsv import reader
 from clld.scripts.util import initializedb, Data
 from clld.db.meta import DBSession
 from clld.db.models import common
+from pyglottolog.api import Glottolog
+from pyglottolog.languoids import Glottocode
+from clld_glottologfamily_plugin.util import load_families
 
 from parabank import models
 
 
-if getpass.getuser().endswith('forkel'):
-    DATA_DIR = Path(os.path.expanduser('~')).joinpath('venvs', 'parabank', 'data')
-else:
-    DATA_DIR = Path("C:/Users/Wolfgang/Documents/Australien/Parabank/Parabank Data")
+DATA_DIR = Path(os.path.expanduser('~')).joinpath('venvs', 'parabank', 'parabank-kinship-data')
 
 
 def has_syncretism(words, *params):
@@ -82,18 +82,19 @@ def main(args):
 
     contrib = common.Contribution(id='contrib', name='the contribution')
 
-    for langu in reader(DATA_DIR.joinpath('data_basics', 'all_languages.txt'), delimiter=';', dicts=True):
-        #print(langu)
-        data.add(common.Language,
-                 langu['glotto'],
-                 id=langu['glotto'],
-                 name=langu['language name'],
-                 latitude=float(langu['latitude']),
-                 longitude=float(langu['longitude']),
-                 description=langu['comment'],)
-
     lang_dict = defaultdict(dict)
-    for fname in DATA_DIR.joinpath('data_open_office').glob('*.txt'):
+    for fname in DATA_DIR.glob('*.txt'):
+        comps = as_unicode(fname.stem).split()
+        gc = comps.pop()
+        if Glottocode.pattern.match(gc) and gc not in ['glot0001', 'glot0002', 'pama1238', 'glot0048', 'glot0049']:
+            lang = data.add(
+                models.ParabankLanguage,
+                gc,
+                id=gc,
+                name=' '.join(comps))
+        else:
+            continue
+
         for item in reader(fname, delimiter=';', dicts=True, encoding='utf-8-sig'):
             if item['parameter'] in lang_dict[item['glottocode']]:
                 if lang_dict[item['glottocode']][item['parameter']] != item['word']:
@@ -102,9 +103,6 @@ def main(args):
                     continue
                 continue
             lang_dict[item['glottocode']][item['parameter']] = item['word']
-            #print(fname)
-            #print(fname, item['glottocode'], item['parameter'])
-            lang = data['Language'][item['glottocode']]
             param = data['Parameter'].get(item['parameter'])
             if not param:
                 param = data.add(
@@ -162,7 +160,7 @@ def main(args):
 
         for lang, words in lang_dict.items():
             if has_syncretism(words, *params):
-                syncretism.languages.append(data['Language'][lang])
+                syncretism.languages.append(data['ParabankLanguage'][lang])
 
     for i, (name, desc, partition) in enumerate([
         [
@@ -286,7 +284,7 @@ def main(args):
             for group in re.split('\s*\)\s*\(\s*', partition.strip()[1:-1])]
         for lang, words in lang_dict.items():
             if has_pattern(words, *param_groups):
-                pattern.languages.append(data['Language'][lang])
+                pattern.languages.append(data['ParabankLanguage'][lang])
 
     for i, (name, desc, params) in enumerate([
         [
@@ -339,6 +337,12 @@ def main(args):
         paradigm = models.Paradigm(id='%s' % (i + 1,), name=name, description=desc)
         for param in params:
             paradigm.parameters.append(data['Parameter'][param])
+
+    load_families(
+        data,
+        data['ParabankLanguage'].values(),
+        glottolog_repos=DATA_DIR.joinpath('..', '..', 'glottolog3', 'glottolog'),
+        isolates_icon='tcccccc')
 
 
 def prime_cache(args):

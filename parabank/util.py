@@ -29,7 +29,7 @@ def language_detail_html(context=None, request=None, **kw):
         )
 
     def td(p):
-        return HTML.td(param_word[p] if p else '')
+        return HTML.td(param_word.get(p, '') if p else '')
 
     def tr(name, *params):
         return HTML.tr(

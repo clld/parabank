@@ -16,6 +16,7 @@ from clld.db.meta import Base, CustomModelMixin
 from clld.db.models.common import (
     Value, ValueSet, IdNameDescriptionMixin, Language, Parameter,
 )
+from clld_glottologfamily_plugin.models import HasFamilyMixin
 
 import parabank.interfaces as parabank_interfaces
 
@@ -45,9 +46,14 @@ class ParameterParadigm(Base):
     parameter_pk = Column(Integer, ForeignKey('parameter.pk'))
     paradigm_pk = Column(Integer, ForeignKey('paradigm.pk'))
 
+
 # -----------------------------------------------------------------------------
 # specialized common mapper classes
 # -----------------------------------------------------------------------------
+@implementer(interfaces.ILanguage)
+class ParabankLanguage(CustomModelMixin, Language, HasFamilyMixin):
+    pk = Column(Integer, ForeignKey('language.pk'), primary_key=True)
+    representation = Column(Integer)
 
 
 @implementer(interfaces.IValue)
