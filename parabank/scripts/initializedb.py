@@ -73,7 +73,7 @@ def main(args):
         license='http://creativecommons.org/licenses/by/4.0/',
         contact='wolfgang.barth@anu.edu.au',
         jsondata={
-            'license_icon': 'http://wals.info/static/images/cc_by.png',
+            'license_icon': 'cc-by.png',
             'license_name': 'Creative Commons Attribution 4.0'})
     DBSession.add(dataset)
 
