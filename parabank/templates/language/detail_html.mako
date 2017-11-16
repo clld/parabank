@@ -213,11 +213,12 @@ input[type=text] {
                 </div>
         </div>
         <div id="pronouns" class="tab-pane">
-            <div class="parabox">
+             <div class="parabox">
                 <h4>Pronouns</h4>
                 ${pronouns}
                 </div>
         </div>
+
         <div id="verbagreement" class="tab-pane">
             <div class="parabox">
                 <h4>Verb Agreement</h4>
@@ -826,7 +827,7 @@ function rainbow() {
 
             var spans = cells[g].getElementsByTagName('span');
             for (var l = 0, len1 = spans.length; l < len1; l++) {
-                var backclr = intToRGB(hashCode(spans[l].innerText));
+                var backclr = intToRGB(hashCode(spans[l].innerText.trim()));
                 var hexclr = increaseBrightness(backclr, 50);
                 cellColorList.push(hexclr);
             }

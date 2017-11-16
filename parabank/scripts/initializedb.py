@@ -103,6 +103,12 @@ def main(args):
                     continue
                 continue
             lang_dict[item['glottocode']][item['parameter']] = item['word']
+<<<<<<< 0b818f17cb4130290cb0f2c5bea60b5f4011ec30
+=======
+            print(fname)
+            #print(fname, item['glottocode'], item['parameter'])
+            lang = data['Language'][item['glottocode']]
+>>>>>>> update parabank
             param = data['Parameter'].get(item['parameter'])
             if not param:
                 param = data.add(
@@ -167,6 +173,44 @@ def main(args):
             "sons vs. daughters",
             "Children are in two groups depending on their gender",
             "(mS, fS) (mD, fD)"],
+        [
+            "Nick_01",
+            "#",
+            "(mF, mMeB, mMyB, mFeB, mFyB) "
+            "(meB, myB) "
+            "(mFBS, mFZS, mMBS, mMZS)"
+        ],
+        [
+            "Nick_02",
+            "#",
+            "(mF) "
+            "(mMeB, mMyB, mFeB, mFyB) "
+            "(meB, myB, mMBS, mMZS, mFBS, mFZS)"],
+        [
+            "Nick_03",
+            "#",
+            "(mF) "
+            "(mFeB, mFyB) "
+            "(meB, myB, mFBS)"],
+        [
+            "Nick_04",
+            "#",
+            "(mFeB, mFyB) "
+            "(mMeB, mMyB) "
+            "(mFBS, mMBS)"],
+        [
+            "Nick_05",
+            "#",
+            "(mFBS) "
+            "(mMBS) "
+            "(mFeB, mFyB, mMeB, mMyB)"],
+        [
+            "Nick_06",
+            "#",
+            "(mM, mMeZ, mMyZ, mFeZ, mFyZ) "
+            "(meZ, myZ)"
+            "(mFZD)"
+            "(mFBD)"],
         [
             "parents by gender and one term for all siblings of parents",
             "simple",
@@ -297,6 +341,10 @@ def main(args):
             "siblings",
             "all brothers and sisters",
             ["meB", "myB", "meZ", "myZ", "feB", "fyB", "feZ", "fyZ"]],
+        [
+            "Nick_02 cousins",
+            "#",
+            ["mFBS", "mFZS", "mMBS", "mMZS"]],
         [
             "cousins - no age distinction",
             "all children of parent's siblings",
