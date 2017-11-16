@@ -13,6 +13,8 @@ from parabank import models
 from parabank.models import Syncretism, Pattern, Paradigm, Word
 from parabank.interfaces import ISyncretism, IPattern, IParadigm
 
+_ = lambda s: s
+_('Familys')
 
 class ParabankMapMarker(LanguageByFamilyMapMarker):
     def get_icon(self, ctx, req):
