@@ -103,12 +103,7 @@ def main(args):
                     continue
                 continue
             lang_dict[item['glottocode']][item['parameter']] = item['word']
-<<<<<<< 0b818f17cb4130290cb0f2c5bea60b5f4011ec30
-=======
-            print(fname)
-            #print(fname, item['glottocode'], item['parameter'])
-            lang = data['Language'][item['glottocode']]
->>>>>>> update parabank
+            
             param = data['Parameter'].get(item['parameter'])
             if not param:
                 param = data.add(
