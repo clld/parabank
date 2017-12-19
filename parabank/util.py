@@ -74,7 +74,7 @@ def language_detail_html(context=None, request=None, **kw):
                 tr('1st (excl) Person Singular', '1sg_a', '1sg_s', '1sg_o', '1sg_p'),
                 tr('1st (excl) Person Dual', '1du_a', '1du_s', '1du_o', '1du_p'),
                 tr('1st (excl) Person Plural', '1pl_a', '1pl_s', '1pl_o', '1pl_p'),
-                tr('1st (incl) Person Dual', '1pl_a', '1pl_s', '1pl_o', '1pl_p'),
+                tr('1st (incl) Person Dual', '12du_a', '12du_s', '12du_o', '12du_p'),
                 tr('1st (incl) Person Plural', '12pl_a', '12pl_s', '12pl_o', '12pl_p'),
                 tr('2nd Person Singular', '2sg_a', '2sg_s', '2sg_o', '2sg_p'),
                 tr('2nd Person Dual', '2du_a', '2du_s', '2du_o', '2du_p'),
