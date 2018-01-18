@@ -1,19 +1,6 @@
 from setuptools import setup, find_packages
 
 
-requires = [
-    'clld>=3.3.3',
-    'clldmpg>=2.0.0',
-    'pyglottolog',
-    'clld-glottologfamily-plugin',
-]
-
-tests_require = [
-    'WebTest >= 1.3.1',  # py3 compat
-    'mock',
-]
-
-
 setup(
     name='parabank',
     version='0.0',
@@ -32,8 +19,26 @@ setup(
     packages=find_packages(),
     include_package_data=True,
     zip_safe=False,
-    install_requires=requires,
-    tests_require=tests_require,
+    install_requires=[
+        'clldmpg~=3.1',
+        'pyglottolog',
+        'clld-glottologfamily-plugin',
+    ],
+    extras_require={
+        'dev': ['flake8', 'waitress'],
+        'test': [
+            'psycopg2',
+            'tox',
+            'mock',
+            'pytest>=3.1',
+            'pytest-clld',
+            'pytest-mock',
+            'pytest-cov',
+            'coverage>=4.2',
+            'selenium',
+            'zope.component>=3.11.0',
+        ],
+    },
     test_suite="parabank",
     entry_points="""\
 [paste.app_factory]
