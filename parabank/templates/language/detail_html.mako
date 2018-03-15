@@ -158,81 +158,14 @@ input[type=text] {
 
 <h2>${_('Language:')} ${ctx.name}</h2>
 
-<h5>${ctx.description}</h5>
-<br>
-<div class="tabbable">
-    <ul class="nav nav-tabs">
-        <li class="active"><a href="#primary" data-toggle="tab">Kinship</a></li>
-        <!-- <li><a href="#secondary" data-toggle="tab">Addressing the Family</a></li> -->
-        <li><a href="#pronouns" data-toggle="tab">Pronouns</a></li>
-        <li><a href="#verbagreement" data-toggle="tab">Verb Agreement</a></li>
-    </ul>
-    <div class="tab-content" style="overflow: visible;">
-        <div id="primary" class="tab-pane active">
-            Color for maximum contrast
-            <div class="parabox">
-                <h4>Siblings</h4>
-                ${siblings}
-                </div>
-            <br>
-
-            <div class="parabox">
-                <h4>Cousins</h4>
-                ${cousins}
-                </div>
-            <br>
-
-            <div class="parabox">
-                <h4>Parents, Aunts & Uncles</h4>
-                ${parents}
-                </div>
-            <br>
-
-            <div class="parabox">
-                <h4>Grandparents & Grandchildren</h4>
-                ${grand}
-                </div>
-            <br>
-
-            <div class="parabox">
-                <h4>Sons & Daughters, Nephews & Nieces</h4>
-                ${sons}
-                </div>
-            <br>
-
-            <div class="parabox">
-                <h4>In-Laws</h4>
-                ${inlaws}
-                </div>
-            <br>
-        </div>
-        <div id="secondary" class="tab-pane">
-            <div class="parabox">
-                <h4>Family members (on the left) addressing other family members</h4>
-                ${levenshtein_siblings}
-                </div>
-        </div>
-        <div id="pronouns" class="tab-pane">
+% if ctx.description:
+    <h5>${ctx.description}</h5>
+% endif
              <div class="parabox">
                 <h4>Pronouns</h4>
                 ${pronouns}
                 </div>
-        </div>
 
-        <div id="verbagreement" class="tab-pane">
-            <div class="parabox">
-                <h4>Verb Agreement</h4>
-                ${verb_agreement}
-                </div>
-            <br>
-
-            <div class="parabox">
-                <h4>Verb Agreement</h4>
-                ${verb_agreement2}
-                </div>
-        </div>
-    </div>
-</div>
 
 ${request.get_datatable('values', h.models.Value, language=ctx).render()}
 

@@ -2,56 +2,40 @@
 from __future__ import unicode_literals, print_function
 import sys
 import os
-import getpass
-from collections import defaultdict
-import re
-from itertools import chain
+from collections import defaultdict, Counter
+from itertools import chain, groupby
 
+from sqlalchemy.orm import joinedload, joinedload_all
 from clldutils.path import Path, as_unicode
 from clldutils.dsv import reader
-from clld.scripts.util import initializedb, Data
+from clldutils.misc import slug
+from clld.scripts.util import initializedb, Data, add_language_codes
 from clld.db.meta import DBSession
 from clld.db.models import common
+from clld.lib.color import qualitative_colors
 from pyglottolog.api import Glottolog
 from pyglottolog.languoids import Glottocode
 from clld_glottologfamily_plugin.util import load_families
+from clld_phylogeny_plugin.models import Phylogeny, TreeLabel, LanguageTreeLabel
 
 from parabank import models
+from parabank.scripts.global_tree import tree
 
 
-DATA_DIR = Path(os.path.expanduser('~')).joinpath('venvs', 'parabank', 'parabank-kinship-data')
-
-
-def has_syncretism(words, *params):
-    """
-    Determine whether a dictionary of words shows a syncretism for a set of parameters.
-
-    A syncretism is shown, when the dictionary contains words for all parameters and all
-    of these words are the same.
-
-    :param words: A dict of words keyed by parameter.
-    :param params: A set of parameters.
-    :return: True if the syncretism is found, otherwise False
-    """
-    return all(i in words for i in params) and len(set(words[p] for p in params)) == 1
-
-
-def has_pattern(words, *syncretisms):
-    """
-    Determine whether a dictionary of words shows a pattern.
-
-    :param words: A dict of words keyed by parameter.
-    :param syncretisms: A set of distinct parameter groups.
-    :return: True if the pattern is found, else False
-    """
-    if all(param in words for param in chain(*syncretisms)):
-
-        # compare always the first parameter of a syncretism with the first of the other
-        # syncretisms. they have to be different in order to be a pattern.
-        if len(set(words[s[0]] for s in syncretisms)) == len(syncretisms):
-            if all(has_syncretism(words, *s) for s in syncretisms):
-                return True
-    return False
+DATA_DIR = Path(os.path.expanduser('~')).joinpath('venvs', 'parabank', 'parabank-pronoun-data')
+PARADIGMS = {
+    "singular": "1sg_a 1sg_s 3sg_m_a 3sg_m_s 3sg_f_a 3sg_f_s 1sg_o 1sg_p 3sg_m_o 3sg_m_p 3sg_f_o 3sg_f_p 2sg_a 2sg_s 2sg_o 2sg_p",
+    "dual": "1du_a 2du_a 1du_s 1du_o 1du_p 3du_m_s 3du_m_o 3du_m_p 3du_m_a 2du_s 2du_o 2du_p 12du_a 12du_s 12du_o 12du_p",
+    "plural": "1pl_a 1pl_s 12pl_o 12pl_p 1pl_o 3pl_m_a 3pl_m_o 3pl_m_p 3pl_m_s 2pl_p 2pl_a 2pl_s 2pl_o 1pl_p 12pl_a 12pl_s",
+    "first person": "12pl_a 12pl_s 1du_o 1pl_o 1sg_o 1du_a 1du_s 1pl_a 1pl_s 12pl_o 1sg_a 1sg_s 12pl_p 12du_p 12du_a 12du_s 1du_p 1pl_p 12du_o 1sg_p",
+    "second person": "2sg_a 2sg_o 2du_s 2sg_s 2pl_s 2pl_p 2pl_a 2pl_o 2du_p 2sg_p 2du_a 2du_o",
+    "third person": "3pl_m_s 3du_m_a 3sg_m_s 3sg_f_s 3sg_m_p 3sg_f_p 3pl_m_o 3sg_m_a 3sg_f_a 3pl_m_p 3pl_m_a 3du_m_o 3du_m_s 3du_m_p 3sg_m_o 3sg_f_o",
+    "actor": "1sg_a 3sg_m_a 1du_a 1pl_a 12du_a 12pl_a 3sg_f_a 3du_m_a 3pl_m_a 2sg_a 2du_a 2pl_a",
+    "subject": "1sg_s 3du_m_s 3pl_m_s 1du_s 1pl_s 12du_s 12pl_s 2sg_s 2du_s 2pl_s 3sg_m_s 3sg_f_s",
+    "object": "1sg_o 3sg_m_o 3sg_f_o 3du_m_o 3pl_m_o 1du_o 1pl_o 12du_o 12pl_o 2sg_o 2du_o 2pl_o",
+    "possessive": "1sg_p 2pl_p 1du_p 1pl_p 12du_p 12pl_p 3du_m_p 3pl_m_p 3sg_m_p 3sg_f_p 2sg_p 2du_p",
+}
+PARADIGMS = {k: v.split() for k, v in PARADIGMS.items()}
 
 
 def main(args):
@@ -82,39 +66,44 @@ def main(args):
 
     contrib = common.Contribution(id='contrib', name='the contribution')
 
-    lang_dict = defaultdict(dict)
     for fname in DATA_DIR.glob('*.txt'):
-        comps = as_unicode(fname.stem).split()
+        lid = as_unicode(fname.stem)
+        comps = lid.split()
         gc = comps.pop()
         if Glottocode.pattern.match(gc) and gc not in ['glot0001', 'glot0002', 'pama1238', 'glot0048', 'glot0049']:
             lang = data.add(
                 models.ParabankLanguage,
-                gc,
-                id=gc,
+                lid,
+                id=slug(lid),
                 name=' '.join(comps))
+            add_language_codes(data, lang, None, glottocode=gc)
         else:
             continue
 
-        for item in reader(fname, delimiter=';', dicts=True, encoding='utf-8-sig'):
-            if item['parameter'] in lang_dict[item['glottocode']]:
-                if lang_dict[item['glottocode']][item['parameter']] != item['word']:
-                    print(fname, item['glottocode'], item['parameter'])
-                    #print(lang_dict[item['glottocode']][item['parameter']], item['word'])
-                    continue
-                continue
-            lang_dict[item['glottocode']][item['parameter']] = item['word']
-            
-            param = data['Parameter'].get(item['parameter'])
+        rows = sorted(
+            reader(fname, delimiter=';', dicts=True, encoding='utf-8-sig'),
+            key=lambda i: i['parameter'])
+        form_counts = Counter([r['word'] for r in rows])
+
+        for p, items in groupby(rows, lambda i: i['parameter']):
+            item, word, wc = None, None, 0
+            # choose the form with the highest frequency in the language's wordlist
+            for item_ in items:
+                if form_counts[item_['word']] > wc:
+                    word, wc, item = item_['word'], form_counts[item_['word']], item_
+
+            param = data['ParabankParameter'].get(p)
             if not param:
                 param = data.add(
-                    common.Parameter,
-                    item['parameter'],
-                    id=item['parameter'],
-                    name=item['parameter'],
+                    models.ParabankParameter,
+                    p,
+                    id=p,
+                    name=p,
+                    type='concept',
                     description=item['description'])
 
-            id_ = item['parameter'] + "-" + item['glottocode']
-            vs = models.ParabankValueSet(
+            id_ = p + "-" + lang.id
+            vs = common.ValueSet(
                 id=id_,
                 language=lang,
                 parameter=param,
@@ -122,270 +111,31 @@ def main(args):
 
             DBSession.add(models.Word(
                 id=id_,
-                name=item['word'],
+                name=word,
                 ipa=item['ipa'],
                 alternative=item.get('alternative'),
                 comment=item.get('comment'),
                 valueset=vs))
 
-    for i, (name, desc, params) in enumerate([
-        ("patrichild", "male speaker's children and children of brothers", "mS mD meBS meBD myBS myBD "
-                                                                           "feBS feBD fyBS fyBD"),
-        ("matrichild", "female speaker's children and children of sisters", "fS fD feZS feZD fyZS fyZD "
-                                                                            "meZS meZD myZS myZD"),
-        ("grandfathers", "all grandparents have the same address term", "mFF mMF fFF fMF"),
-        ("#2 siblings: sisters", "all sisters have the same address term", "meZ myZ feZ fyZ"),
-        ("#3 siblings: brothers", "all brothers have the same address term", "meB myB feB fyB"),
-        ("father-in-law", "all fathers-in-law have the same address term", "fHF mWF"),
-        ("#1 siblings: older", "one term for all older siblings", "meB feB feB feZ"),
-        ("#4 siblings: younger", "one term for all younger siblings", "myB fyB fyB fyZ"),
-        ("#5 siblings: cross sex", "one term for other sex siblings", "meZ myZ feB fyB"),
-        ("#6 siblings: same sex", "one term for same sex siblings", "meB myB feZ fyZ"),
-        ("#7 siblings", "male ego uses one term for sisters", "meZ myZ"),
-        ("#8 siblings", "male ego uses one term for brothers", "meB myB"),
-        ("#9 siblings", "female ego uses one term for sisters", "feZ fyZ"),
-        ("#10 siblings", "female ego uses one term for brothers", "feB fyB"),
-        ("#11 siblings", "myB feB fyB", "myB feB fyB"),
-        ("#12 siblings", "meZ myZ feZ", "meZ myZ feZ"),
-        ("#13 siblings", "myB fyZ", "myB fyZ"),
-        ("#14 siblings", "feB meZ", "feB meZ"),
-        ("#15 siblings", "myZ fyB", "myZ fyB"),
-        ("#16 siblings", "feZ meB", "feZ meB"),
-    ]):
-        params = params.split()
-        syncretism = models.Syncretism(
-            id='%s' % (i + 1,),
-            name=name,
-            description=desc,
-            notation='(%s)' % ', '.join(params))
-
-        for lang, words in lang_dict.items():
-            if has_syncretism(words, *params):
-                syncretism.languages.append(data['ParabankLanguage'][lang])
-
-    for i, (name, desc, partition) in enumerate([
-        [
-            "sons vs. daughters",
-            "Children are in two groups depending on their gender",
-            "(mS, fS) (mD, fD)"],
-        [
-            "Nick_01",
-            "#",
-            "(mF, mMeB, mMyB, mFeB, mFyB) "
-            "(meB, myB) "
-            "(mFBS, mFZS, mMBS, mMZS)"
-        ],
-        [
-            "Nick_02",
-            "#",
-            "(mF) "
-            "(mMeB, mMyB, mFeB, mFyB) "
-            "(meB, myB, mMBS, mMZS, mFBS, mFZS)"],
-        [
-            "Nick_03",
-            "#",
-            "(mF) "
-            "(mFeB, mFyB) "
-            "(meB, myB, mFBS)"],
-        [
-            "Nick_04",
-            "#",
-            "(mFeB, mFyB) "
-            "(mMeB, mMyB) "
-            "(mFBS, mMBS)"],
-        [
-            "Nick_05",
-            "#",
-            "(mFBS) "
-            "(mMBS) "
-            "(mFeB, mFyB, mMeB, mMyB)"],
-        [
-            "Nick_06",
-            "#",
-            "(mM, mMeZ, mMyZ, mFeZ, mFyZ) "
-            "(meZ, myZ)"
-            "(mFZD)"
-            "(mFBD)"],
-        [
-            "parents by gender and one term for all siblings of parents",
-            "simple",
-            "(mF, fF) "
-            "(mM, fM) "
-            "(mFeB, mFyB, mFeZ, mFyZ, mMeB, mMyB, mMeZ, mMyZ, mFeB, fFyB, fFeZ, fFyZ, fMeB, fMyB, fMeZ, fMyZ)"],
-        [
-            "Hawaiian Kinship System",
-            "Differences are distinguished by generation and by gender",
-            "(meB, myB, mFBS, mFZS, mMBS, mMZS, feZ, fyZ, fFBD, fFZD, fMBD, fMZD) "
-            "(meZ, myZ, mFBD, mFZD, mMBD, mMZD) (feB, fyB, fFBS, fFZS, fMBS, fMZS) "
-            "(mF, fF, mFeB, mFyB, mMeB, mMyB, fFeB, fFyB, fMeB, fMyB) "
-            "(mM, fM, mFeZ, mFyZ, mMeZ, mMyZ, fFeZ, fFyZ, fMeZ, fMyZ)"],
-        [
-            "#3 siblings: gender division",
-            "Siblings are in two groups depending on the gender",
-            "(meZ, myZ, feZ, fyZ) (meB, myB, feB, fyB)"],
-        [
-            "#5 siblings: age division",
-            "Siblings are in two groups depending on the relative age to the speaker",
-            "(meB, meZ, feB, feZ) (myB, myZ, fyB, fyZ)"],
-        [
-            "#4 siblings: male speaker / female speaker",
-            "Siblings are in two groups depending on the gender of speaker",
-            "(meB, myB, meZ, myZ) (feB, fyB, feZ, fyZ)"],
-        [
-            "#2 siblings: gender division plus meB and fyZ",
-            "Siblings are in two groups: male/female, where male elder brother and female younger sister have own term",
-            "(meB) (myB, feB, fyB) (meZ, myZ, feZ) (fyZ)"],
-        [
-            "#1 siblings: elder brother / younger brother / elder sister / younger sister",
-            "Siblings are in four groups distinguished by age and gender",
-            "(meB, feB) (myB, fyB) (meZ, feZ) (myZ, fyZ)"],
-        [
-            "#6 siblings: four groups: gender of speaker, gender of sibling",
-            "Siblings are in four groups distinguished by gender of speaker and gender of sibling",
-            "(meB, myB) (feB, fyB) (meZ, myZ) (feZ, fyZ)"],
-        [
-            "#7 siblings: eight terms",
-            "Each sibling is addressed differently",
-            "(meB) (myB) (feB) (fyB) (meZ) (myZ) (feZ) (fyZ)"],
-        [
-            "#8 siblings: gender of sibling plus distinction of male/female speaker for brothers",
-            "distinction by gender and brother distinction by gender of speaker",
-            "(meB, myB) (feB, fyB) (meZ, myZ, feZ, fyZ)"],
-        [
-            "#9 siblings: gender of sibling plus distinction of male/female speaker for sisters",
-            "distinction by gender and sister distinction by gender of speaker",
-            "(meB, myB, feB, fyB) (meZ, myZ) (feZ, fyZ)"],
-        [
-            "#10 siblings: gender distinction plus same gender by age",
-            "distinction by gender and same gender siblings are distinguished by age",
-            "(meB) (myB, fyZ) (feB, fyB) (meZ, myZ) (feZ)"],
-        [
-            "#11 siblings: age distinction plus older siblings by gender",
-            "distinction by gender and same gender siblings are distinguished by age",
-            "(meB, feB) (myB, fyB, myZ, fyZ) (meZ, feZ)"],
-        [
-            "#12 siblings: gender division plus age division for brothers",
-            "gender division plus age division for brothers",
-            "(meB, feB) (myB, fyB) (myZ, fyZ, meZ, feZ)"],
-        [
-            "#13 siblings: age division plus sex of speaker division for older siblings",
-            "gender division plus age division for brothers",
-            "(meB, meB) (feB, feZ) (myB, myZ, fyB, fyZ)"],
-        [
-            "#14 siblings: cross gender distinction plus age distinction in same gender",
-            "cross gender plus age in same gender",
-            "(meB, feZ) (myB, fyZ) (feB, fyB, meZ, myZ)"],
-        [
-            "#15 siblings: one term for same gender sibling, cross gender divided in male and female",
-            "one term for same gender sibling cross gender divided in male and female",
-            "(meB, myB, feZ, fyZ) (feB, fyB) (meZ, myZ)"],
-        [
-            "#16 siblings: one term for cross gender sibling same gender divided in male and female",
-            "one term for cross gender sibling same gender divided in male and female",
-            "(meB, myB) (feZ, fyZ) (feB, fyB, meZ, myZ)"],
-        [
-            "#17 siblings", "complex", "(meB) (myB, fyB) (feZ) (fyZ) (feB) (meZ) (myZ)"],
-        [
-            "#18 siblings", "complex", "(meB) (myB, fyB, fyZ) (feZ) (feB) (meZ) (myZ)"],
-        [
-            "#19 siblings", "complex", "(meB) (myB, fyB, feB) (feZ, fyZ) (meZ, myZ)"],
-        [
-            "#20 siblings", "complex", "(meB, feB) (myB, fyB, myZ, fyZ) (meZ) (feZ)"],
-        [
-            "#21 siblings: age and gender distinction plus younger sister by sex of speaker",
-            "age and gender distinction plus younger sister by sex of speaker",
-            "(meB, feB) (myB, fyB) (meZ, feZ) (myZ) (fyZ)"],
-        [
-            "#22 siblings", "complex", "(meB, feB) (myB) (fyB) (meZ, feZ) (myZ) (fyZ)"],
-        [
-            "#23 siblings", "complex", "(meB) (feB) (myB) (fyB) (meZ) (feZ) (myZ, fyZ)"],
-        [
-            "#24 siblings: brothers and age distinction in sisters",
-            "brothers and age distinction in sisters",
-            "(meB, feB, myB, fyB) (meZ, feZ) (myZ, fyZ)"],
-        [
-            "#25 siblings: one term for all",
-            "one term for all siblings",
-            "(meB, feB, myB, fyB, meZ, feZ, myZ, fyZ)"],
-        [
-            "#26 siblings: cross vs. same sex sibling",
-            "two terms: one for cross one for same sex sibling",
-            "(meB, myB, feZ, fyZ) (meZ, myZ, feB, fyB)"],
-        [
-            "#27 siblings: age distinction plus gender in older siblings plus speaker distinction for older brother",
-            "age and gender plus speaker distinction for older brother",
-            "(meB) (myB, fyB, myZ, fyZ) (feB) (meZ, feZ)"],
-    ]):
-        pattern = models.Pattern(
-            id='%s' % (i + 1,), name=name, description=desc, notation=partition)
-        param_groups = [
-            re.split(',\s*', group)
-            for group in re.split('\s*\)\s*\(\s*', partition.strip()[1:-1])]
-        for lang, words in lang_dict.items():
-            if has_pattern(words, *param_groups):
-                pattern.languages.append(data['ParabankLanguage'][lang])
-
-    for i, (name, desc, params) in enumerate([
-        [
-            "parents, aunts & uncles",
-            "all kinship terms for father, mother and their siblings",
-            ["mF", "mM", "fF", "fM",
-             "mFeB", "mFyB", "mFeZ", "mFyZ", "mMeB", "mMyB", "mMeZ", "mMyZ",
-             "fFeB", "fFyB", "fFeZ", "fFyZ", "fMeB", "fMyB", "fMeZ", "fMyZ"]],
-        [
-            "siblings",
-            "all brothers and sisters",
-            ["meB", "myB", "meZ", "myZ", "feB", "fyB", "feZ", "fyZ"]],
-        [
-            "Nick_02 cousins",
-            "#",
-            ["mFBS", "mFZS", "mMBS", "mMZS"]],
-        [
-            "cousins - no age distinction",
-            "all children of parent's siblings",
-            ["mFBS", "mFBD", "mFZS", "mFZD", "mMBS", "mMBD", "mMZS", "mMZD",
-             "fFBS", "fFBD", "fFZS", "fFZD", "fMBS", "fMBD", "fMZS", "fMZD"]],
-        [
-            "cousins - age distinction depends on relative age between ego and cousin",
-            "all children of parent's siblings by relative age between ego and cousin",
-            ["mFBeS", "mFBeD", "mFZeS", "mFZeD", "mMBeS", "mMBeD", "mMZeS", "mMZeD",
-             "mFByS", "mFByD", "mFZyS", "mFZyD", "mMByS", "mMByD", "mMZyS", "mMZyD",
-             "fFBeS", "fFBeD", "fFZeS", "fFZeD", "fMBeS", "fMBeD", "fMZeS", "fMZeD",
-             "fFByS", "fFByD", "fFZyS", "fFZyD", "fMByS", "fMByD", "fMZyS", "fMZyD"]],
-        [
-            "cousins - age distinction depends on relative age between parent of ego and parent of cousin",
-            "all children of parent's siblings by relative age of parents",
-            ["mFeBS", "mFeBD", "mFeZS", "mFeZD", "mMeBS", "mMeBD", "mMeZS", "mMeZD",
-             "mFyBS", "mFyBD", "mFyZS", "mFyZD", "mMyBS", "mMyBD", "mMyZS", "mMyZD",
-             "fFeBS", "fFeBD", "fFeZS", "fFeZD", "fMeBS", "fMeBD", "fMeZS", "fMeZD",
-             "fFyBS", "fFyBD", "fFyZS", "fFyZD", "fMyBS", "fMyBD", "fMyZS", "fMyZD"]],
-        [
-            "grandparents & grandchildren",
-            "all direct ancestors of the grandparent generation & all direct "
-            "descendants of the grandchildren generation",
-            ["mFF", "mFM", "mMF", "mMM", "fFF", "fFM", "fMF", "fMM",
-             "mSS", "mSD", "mDS", "mDD", "fSS", "fSD", "fDS", "fDD"]],
-        [
-            "sons & daughters, nieces & nephews",
-            "all children of ego and ego's siblings",
-            ["mS", "mD", "fS", "fD",
-             "meBS", "meBD", "myBS", "myBD", "meZS", "meZD", "myZS", "myZD",
-             "feBS", "feBD", "fyBS", "fyBD", "feZS", "feZD", "fyZS", "fyZD"]],
-        [
-            "In-laws & affines",
-            "relatives through marriage",
-            ["mW", "fH", "fHF", "fHM", "mWF", "mWM",
-             "mSW", "mDH", "fSW", "fDH"]],
-    ]):
-        paradigm = models.Paradigm(id='%s' % (i + 1,), name=name, description=desc)
-        for param in params:
-            paradigm.parameters.append(data['Parameter'][param])
-
     load_families(
         data,
-        data['ParabankLanguage'].values(),
+        [(l.glottocode, l) for l in data['ParabankLanguage'].values()],
         glottolog_repos=DATA_DIR.joinpath('..', '..', 'glottolog3', 'glottolog'),
         isolates_icon='tcccccc')
+
+    langs_by_gc = defaultdict(list)
+    for l in data['ParabankLanguage'].values():
+        langs_by_gc[l.glottocode].append(l)
+
+    newick, glottocodes = tree(
+        list(langs_by_gc.keys()),
+        DATA_DIR.joinpath('..', '..', 'glottolog3', 'glottolog'))
+    phylo = Phylogeny(id='p', name='glottolog global tree', newick=newick)
+    for gc in glottocodes:
+        label = TreeLabel(id=gc, name=gc, phylogeny=phylo)
+        for lang in langs_by_gc[gc]:
+            LanguageTreeLabel(language=lang, treelabel=label)
+    DBSession.add(phylo)
 
 
 def prime_cache(args):
@@ -393,6 +143,48 @@ def prime_cache(args):
     This procedure should be separate from the db initialization, because
     it will have to be run periodiucally whenever data has been updated.
     """
+    languages = DBSession.query(common.Language).options(
+        joinedload_all(common.Language.valuesets, common.ValueSet.parameter),
+        joinedload(common.Language.valuesets, common.ValueSet.values)
+    ).all()
+    contrib = DBSession.query(common.Contribution).first()
+
+    for name, params in PARADIGMS.items():
+        patterns = defaultdict(lambda: defaultdict(list))
+        for lang in languages:
+            for vs in sorted(lang.valuesets, key=lambda i: i.parameter_pk):
+                if vs.parameter.id in params:
+                    patterns[lang.pk][vs.values[0].name].append((vs.parameter_pk, vs.parameter.id))
+
+        tmp = defaultdict(list)
+        for l, pattern in patterns.items():
+            ps = []
+            for v in sorted(pattern.values(), key=lambda p: p[0][0]):
+                ps.append(', '.join([vv[1] for vv in v]))
+            tmp[' '.join(['({0})'.format(vv) for vv in ps])].append(l)
+
+        patterns = {'other': []}
+        for pattern, langs_ in tmp.items():
+            if len(langs_) == 1:
+                patterns['other'].append(langs_[0])
+            else:
+                patterns[pattern] = langs_[:]
+
+        colors = qualitative_colors(len(patterns))
+        param = models.ParabankParameter(id=slug(name), name=name, type='paradigm')
+        for i, (pattern, langs_) in enumerate(patterns.items()):
+            deid = '{0}-{1}'.format(param.id, i + 1)
+            de = common.DomainElement(
+                id=deid,
+                name=deid,
+                description=pattern,
+                parameter=param,
+                jsondata={'color': colors[i]})
+            for lang_ in langs_:
+                vsid = '{0}-{1}'.format(param.id, lang_)
+                vs = common.ValueSet(id=vsid, language_pk=lang_, parameter=param, contribution=contrib)
+                models.Word(id=vsid, valueset=vs, name=pattern, domainelement=de)
+        DBSession.add(param)
 
 
 if __name__ == '__main__':

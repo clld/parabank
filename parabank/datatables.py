@@ -7,11 +7,11 @@ from clld.web.datatables.parameter import Parameters
 from clld.web.datatables.language import Languages
 from clld.web.util.htmllib import HTML
 from clld.web.util.helpers import link
-from clld.db.models.common import Parameter, Language
+from clld.db.models.common import Parameter, Language, ValueSet
 from clld_glottologfamily_plugin.datatables import FamilyLinkCol
 from clld_glottologfamily_plugin.models import Family
 
-from parabank.models import Syncretism, Pattern, Word, Paradigm, ParabankValueSet, ParabankLanguage
+from parabank.models import Word, ParabankLanguage
 
 
 class Words(DataTable):
@@ -23,7 +23,7 @@ class Words(DataTable):
             Col(self, 'word', model_col=Word.name),
             Col(self, 'IPA', model_col=Word.ipa),
             Col(self, 'valueset', model_col=Word.valueset_pk),
-            Col(self, 'parameter', model_col=ParabankValueSet.parameter_pk),
+            Col(self, 'parameter', model_col=ValueSet.parameter_pk),
             Col(self, 'Language'),
             Col(self, 'Syncretism')
         ]
@@ -58,51 +58,12 @@ class LanguageUnorderedInCol(Col):
             class_="unstyled")
 
 
-class Syncretisms(DataTable):
-    def col_defs(self):
-        return [
-            LinkCol(self, 'name', model_col=Syncretism.name),
-            Col(self, 'description', model_col=Syncretism.description),
-            Col(self, 'notation', model_col=Syncretism.notation),
-            LanguageUnorderedInCol(self, 'language', bSearchable=False, bSortable=False),
-        ]
-
-
-class Patterns(DataTable):
-    def col_defs(self):
-        return [
-            LinkCol(self, 'name', model_col=Pattern.name),
-            Col(self, 'description', model_col=Pattern.description),
-            Col(self, 'notation', model_col=Syncretism.notation),
-            LanguageUnorderedInCol(self, 'language', bSearchable=False, bSortable=False),
-        ]
-
-
-class Paradigms(DataTable):
-    def col_defs(self):
-        return [
-            Col(self, 'name', model_col=Paradigm.name),
-            Col(self, 'description', model_col=Paradigm.description),
-            ParameterInCol(self, 'parameters', bSearchable=False, bSortable=False)
-        ]
-
-
 class ParameterTable(Parameters):
     def col_defs(self):
         return [
             LinkCol(self, 'name'),
             Col(self, 'description')
         ]
-
-
-class SyncretismInCol(Col):
-    def format(self, item):
-        return list_of_links(self.dt.req, item.syncretisms)
-
-
-class PatternInCol(Col):
-    def format(self, item):
-        return list_of_links(self.dt.req, item.patterns)
 
 
 class ParabankLanguages(Languages):
@@ -115,8 +76,6 @@ class ParabankLanguages(Languages):
             LinkCol(self, 'name'),
             FamilyLinkCol(self, 'family', ParabankLanguage),
             Col(self, 'contribution'),
-            SyncretismInCol(self, 'syncretism', bSearchable=False, bSortable=False),
-            PatternInCol(self, 'pattern', bSearchable=False, bSortable=False),
         ]
 
 
@@ -150,9 +109,6 @@ class Values(datatables.Values):
 
 def includeme(config):
     config.register_datatable('words', Words)
-    config.register_datatable('syncretisms', Syncretisms)
-    config.register_datatable('patterns', Patterns)
-    config.register_datatable('paradigms', Paradigms)
     config.register_datatable('parameters', ParameterTable)
     config.register_datatable('languages', ParabankLanguages)
     config.register_datatable('values', Values)
