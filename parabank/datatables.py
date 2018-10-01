@@ -8,25 +8,10 @@ from clld.web.datatables.language import Languages
 from clld.web.util.htmllib import HTML
 from clld.web.util.helpers import link
 from clld.db.models.common import Parameter, Language, ValueSet
-from clld_glottologfamily_plugin.datatables import FamilyLinkCol
-from clld_glottologfamily_plugin.models import Family
+from clld_glottologfamily_plugin.datatables import FamilyCol
+from clld.web.util import glottolog
 
 from parabank.models import Word, ParabankLanguage
-
-
-class Words(DataTable):
-    # list of the words with languages, parameters and paradigms they show up in.
-    def col_defs(self):
-        return [
-            Col(self, 'pk', model_col=Word.pk),
-            Col(self, 'id', model_col=Word.id),
-            Col(self, 'word', model_col=Word.name),
-            Col(self, 'IPA', model_col=Word.ipa),
-            Col(self, 'valueset', model_col=Word.valueset_pk),
-            Col(self, 'parameter', model_col=ValueSet.parameter_pk),
-            Col(self, 'Language'),
-            Col(self, 'Syncretism')
-        ]
 
 
 def list_of_links(req, items, container=HTML.ul, item=HTML.li, link_attrs=None):
@@ -61,9 +46,15 @@ class LanguageUnorderedInCol(Col):
 class ParameterTable(Parameters):
     def col_defs(self):
         return [
-            LinkCol(self, 'name'),
-            Col(self, 'description')
+            IdLinkCol(self, 'id', sTitle='Name'),
+            Col(self, 'name', sTitle='Description'),
+            Col(self, 'description', sTitle='Examples')
         ]
+
+
+class GlottocodeCol(Col):
+    def format(self, item):
+        return glottolog.link(self.dt.req, item.id, label=item.id)
 
 
 class ParabankLanguages(Languages):
@@ -72,43 +63,62 @@ class ParabankLanguages(Languages):
 
     def col_defs(self):
         return [
-            Col(self, 'id'),
             LinkCol(self, 'name'),
-            FamilyLinkCol(self, 'family', ParabankLanguage),
-            Col(self, 'contribution'),
+            GlottocodeCol(self, 'id'),
+            FamilyCol(self, 'family', ParabankLanguage),
+            Col(self, 'classification', model_col=ParabankLanguage.classification),
+            Col(self, 'source', model_col=ParabankLanguage.source),
         ]
+
+
+class IdLinkCol(LinkCol):
+    def get_attrs(self, item):
+        return {'label': self.get_obj(item).id}
 
 
 class Values(datatables.Values):
     def col_defs(self):
         if self.language:
             return [
-                LinkCol(self, 'name'),
-                Col(self, 'ipa', model_col=Word.ipa),
-                Col(self, 'alternative', model_col=Word.alternative),
-                LinkCol(
+                Col(self, 'name', sTitle='Term'),
+                IdLinkCol(
                     self,
                     'parameter',
                     sTitle=self.req.translate('Parameter'),
+                    model_col=Parameter.id,
+                    get_object=lambda i: i.valueset.parameter),
+                LinkCol(
+                    self,
+                    'description',
                     model_col=Parameter.name,
                     get_object=lambda i: i.valueset.parameter),
                 Col(self, 'comment', model_col=Word.comment),
             ]
         if self.parameter:
             return [
-                Col(self, 'id'),
-                LinkCol(self, 'name'),
-                Col(self, 'ipa', model_col=Word.ipa),
+                Col(self, 'name', sTitle='Term'),
                 LinkCol(
                     self,
                     'language',
                     model_col=Language.name,
                     get_object=lambda i: i.valueset.language),
+                FamilyCol(
+                    self,
+                    'family',
+                    ParabankLanguage,
+                    get_object=lambda i: i.valueset.language),
+                Col(self,
+                    'classification',
+                    model_col=ParabankLanguage.classification,
+                    get_object=lambda i: i.valueset.language),
+                Col(self,
+                    'source',
+                    model_col=ParabankLanguage.source,
+                    get_object=lambda i: i.valueset.language),
             ]
 
 
 def includeme(config):
-    config.register_datatable('words', Words)
     config.register_datatable('parameters', ParameterTable)
     config.register_datatable('languages', ParabankLanguages)
     config.register_datatable('values', Values)

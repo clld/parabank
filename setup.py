@@ -20,9 +20,10 @@ setup(
     include_package_data=True,
     zip_safe=False,
     install_requires=[
-        'clld~=4.2',
+        'clld~=4.4',
         'clldmpg~=3.1',
         'pyglottolog',
+        'pycldf',
         'clld-glottologfamily-plugin',
         'clld-phylogeny-plugin>=1.0.2',
         'sqlalchemy',

@@ -7,10 +7,10 @@ pytest_plugins = ['clld']
     "method,path",
     [
         ('get_html', '/'),
-        ('get_html', '/languages/wang1287'),
-        ('get_html', '/languages/casi1235#pronouns'),
-        ('get_html', '/parameters/mF'),
-        ('get_html', '/patterns/22'),
+        ('get_html', '/languages'),
+        ('get_html', '/parameters'),
+        ('get_html', '/languages/abau1245'),
+        ('get_html', '/parameters/2sg_a'),
     ])
 def test_pages(app, method, path):
     getattr(app, method)(path)

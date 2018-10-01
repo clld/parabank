@@ -2,20 +2,19 @@
 from __future__ import unicode_literals, print_function, division
 
 from pyramid.config import Configurator
-from clld_glottologfamily_plugin.util import LanguageByFamilyMapMarker
-from clld.interfaces import IValue, IValueSet, IMapMarker, IDomainElement
+from clld_glottologfamily_plugin.util import LanguageByFamilyMapMarker, ISOLATES_ICON
+from clld.interfaces import IValue, IValueSet, IMapMarker, IDomainElement, ILanguage
 from clld.lib.svg import icon, data_url
-
-from clld.web.app import get_adapters
 
 # we must make sure custom models are known at database initialization!
 from parabank import models
 
 from parabank.models import Word
-from parabank.interfaces import ISyncretism, IPattern, IParadigm
 
 _ = lambda s: s
 _('Familys')
+_('Parameter')
+_('Parameters')
 
 
 class ParabankMapMarker(LanguageByFamilyMapMarker):
@@ -33,6 +32,10 @@ class ParabankMapMarker(LanguageByFamilyMapMarker):
             if ctx.values[0].domainelement_pk:
                 return self.svg_icon(ctx.values[0].domainelement)
             return LanguageByFamilyMapMarker.__call__(self, ctx.language, req)
+        if ILanguage.providedBy(ctx):
+            if ctx.family:
+                return data_url(icon(ctx.family.jsondata['icon']))
+            return data_url(icon(req.registry.settings.get('clld.isolates_icon', ISOLATES_ICON)))
         return LanguageByFamilyMapMarker.__call__(self, ctx, req)
 
 
@@ -42,9 +45,5 @@ def main(global_config, **settings):
     config = Configurator(settings=settings)
     config.include('clld.web.app')
     config.include('clld_glottologfamily_plugin')
-    config.include('clld_phylogeny_plugin')
     config.registry.registerUtility(ParabankMapMarker(), IMapMarker)
-
-    #config.register_resource('word', Word, clldInt.IValue, with_index=True)
-
     return config.make_wsgi_app()

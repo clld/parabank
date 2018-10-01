@@ -7,25 +7,17 @@ from clld.web.util.htmllib import HTML
 from clld.db.meta import DBSession
 from clld.db.models.common import Parameter, ValueSet, Value
 
-from parabank.adapters import ParadigmTree
-
-
-def parameter_detail_html(request=None, context=None, **kw):
-    return {
-        'tree': ParadigmTree(request, context) if context.type == 'paradigm' else None,
-    }
-
 
 def language_detail_html(context=None, request=None, **kw):
     # makes sure all display elements have a value
-    param_word = {p.name: '#' for p in DBSession.query(Parameter)}
+    param_word = {p.id: '#' for p in DBSession.query(Parameter)}
 
     # override the param_word dict with values from the DB
     for word in DBSession.query(Value)\
             .join(ValueSet)\
             .filter(ValueSet.language_pk == context.pk)\
             .options(joinedload_all(Value.valueset, ValueSet.parameter)):
-        param_word[word.valueset.parameter.name] = word.name
+        param_word[word.valueset.parameter.id] = word.name
 
     def thead(*cols):
         return HTML.thead(
