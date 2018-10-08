@@ -57,10 +57,10 @@ def language_detail_html(context=None, request=None, **kw):
                 tr('2nd Person Singular', '2sg_a', '2sg_s', '2sg_o', '2sg_p'),
                 tr('2nd Person Dual', '2du_a', '2du_s', '2du_o', '2du_p'),
                 tr('2nd Person Plural', '2pl_a', '2pl_s', '2pl_o', '2pl_p'),
-                tr('3rd Person Singular Gender 1', '3sg_m_a', '3sg_m_s', '3sg_m_o', '3sg_m_p'),
-                tr('3rd Person Singular Gender 2', '3sg_f_a', '3sg_f_s', '3sg_f_o', '3sg_f_p'),
-                tr('3rd Person Dual', '3du_m_a', '3du_m_s', '3du_m_o', '3du_m_p'),
-                tr('3rd Person Plural', '3pl_m_a', '3pl_m_s', '3pl_m_o', '3pl_m_p'),
+                tr('3rd Person Singular Gender 1', '3sg_gen1_a', '3sg_gen1_s', '3sg_gen1_o', '3sg_gen1_p'),
+                tr('3rd Person Singular Gender 2', '3sg_gen2_a', '3sg_gen2_s', '3sg_gen2_o', '3sg_gen2_p'),
+                tr('3rd Person Dual', '3du_gen1_a', '3du_gen1_s', '3du_gen1_o', '3du_gen1_p'),
+                tr('3rd Person Plural', '3pl_gen1_a', '3pl_gen1_s', '3pl_gen1_o', '3pl_gen1_p'),
             )
         ),
     }
