@@ -38,3 +38,4 @@ class Word(CustomModelMixin, Value):
     alternative = Column(Unicode)
     comment = Column(Unicode)
     sound = Column(Unicode)
+    original = Column(Unicode)

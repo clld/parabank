@@ -80,6 +80,7 @@ def main(args):  # pragma: no cover
             id=f['ID'],
             name=f['Form'],
             comment=f.get('Comment'),
+            original=f['Original_parameter'],
             valueset=vs))
 
     load_families(

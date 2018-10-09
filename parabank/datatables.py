@@ -93,6 +93,7 @@ class Values(datatables.Values):
                     model_col=Parameter.name,
                     get_object=lambda i: i.valueset.parameter),
                 Col(self, 'comment', model_col=Word.comment),
+                Col(self, '#', model_col=Word.original),
             ]
         if self.parameter:
             return [
@@ -115,6 +116,7 @@ class Values(datatables.Values):
                     'source',
                     model_col=ParabankLanguage.source,
                     get_object=lambda i: i.valueset.language),
+                Col(self, '#', model_col=Word.original),
             ]
 
 
