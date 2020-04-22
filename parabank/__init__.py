@@ -1,10 +1,7 @@
-# coding: utf8
-from __future__ import unicode_literals, print_function, division
-
 from pyramid.config import Configurator
 from clld_glottologfamily_plugin.util import LanguageByFamilyMapMarker, ISOLATES_ICON
 from clld.interfaces import IValue, IValueSet, IMapMarker, IDomainElement, ILanguage
-from clld.lib.svg import icon, data_url
+from clldutils.svg import icon, data_url
 
 # we must make sure custom models are known at database initialization!
 from parabank import models

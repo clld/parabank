@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-from __future__ import unicode_literals, print_function
 import sys
 
 from clld.scripts.util import initializedb, Data, add_language_codes

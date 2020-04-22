@@ -1,6 +1,3 @@
-# coding: utf8
-from __future__ import unicode_literals, print_function, division
-
 from zope.interface import implementer
 from sqlalchemy import (
     Column,
@@ -11,9 +8,7 @@ from sqlalchemy import (
 
 from clld import interfaces
 from clld.db.meta import Base, CustomModelMixin
-from clld.db.models.common import (
-    Value, ValueSet, IdNameDescriptionMixin, Language, Parameter,
-)
+from clld.db.models.common import Value, Language
 from clld_glottologfamily_plugin.models import HasFamilyMixin
 
 

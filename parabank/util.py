@@ -1,7 +1,4 @@
-# coding: utf8
-from __future__ import unicode_literals, print_function, division
-
-from sqlalchemy.orm import joinedload_all
+from sqlalchemy.orm import joinedload
 
 from clld.web.util.htmllib import HTML
 from clld.db.meta import DBSession
@@ -16,7 +13,7 @@ def language_detail_html(context=None, request=None, **kw):
     for word in DBSession.query(Value)\
             .join(ValueSet)\
             .filter(ValueSet.language_pk == context.pk)\
-            .options(joinedload_all(Value.valueset, ValueSet.parameter)):
+            .options(joinedload(Value.valueset).joinedload(ValueSet.parameter)):
         param_word[word.valueset.parameter.id] = word.name
 
     def thead(*cols):
