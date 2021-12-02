@@ -1,6 +1,6 @@
 import sys
 
-from clld.scripts.util import initializedb, Data, add_language_codes
+from clld.cliutil import Data, add_language_codes
 from clld.db.meta import DBSession
 from clld.db.models import common
 from clld_glottologfamily_plugin.util import load_families
@@ -93,8 +93,3 @@ def prime_cache(args):  # pragma: no cover
     This procedure should be separate from the db initialization, because
     it will have to be run periodiucally whenever data has been updated.
     """
-
-
-if __name__ == '__main__':  # pragma: no cover
-    initializedb(create=main, prime_cache=prime_cache)
-    sys.exit(0)
