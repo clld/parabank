@@ -1,5 +1,3 @@
-import sys
-
 from clld.cliutil import Data, add_language_codes
 from clld.db.meta import DBSession
 from clld.db.models import common
